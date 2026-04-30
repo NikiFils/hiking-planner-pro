@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<meta name="theme-color" content="#2b6e3c">
+<meta name="description" content="Походный Планировщик PRO — планирование снаряжения, маршрутов и расходов">
+<link rel="manifest" href="manifest.json">
+<title>Походный Планировщик PRO | v1.00.03</title>
+<style>
+:root {
+--bg-gradient: linear-gradient(135deg, #e8f0f5 0%, #d4e2ec 100%);
+--card-bg: rgba(255, 255, 255, 0.96);
+--text-primary: #1a3a28;
+--text-secondary: #2c5a3b;
+--border-light: #cbd5e1;
+--accent-green: #2b6e3c;
+--accent-green-light: #4ade80;
+--critical-red: #b91c1c;
+--shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.08);
+--shadow-lg: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+--item-bg: #f9fafb;
+--hover-bg: #e8f0fe;
+}
+body.dark-theme {
+--bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+--card-bg: rgba(30, 41, 59, 0.96);
+--text-primary: #e2e8f0;
+--text-secondary: #94a8b8;
+--border-light: #475569;
+--accent-green: #4ade80;
+--critical-red: #fca5a5;
+--item-bg: #334155;
+--hover-bg: #475669;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif; }
+body { background: var(--bg-gradient); min-height: 100vh; padding: 2rem 1.5rem; transition: background 0.3s, color 0.3s; }
+.container { max-width: 1600px; margin: 0 auto; }
+
+/* ✅ ИЗМЕНЕНИЕ: ЗАГОЛОВОК СЛЕВА */
+.header { 
+    text-align: left; 
+    margin-bottom: 2rem; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    flex-wrap: wrap; 
+    gap: 1rem; 
+    position: relative; 
+}
+.header-left { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: flex-start; /* Выравнивание влево */
+}
+.header-left h1 { font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, #1e3c2c, #2b5e3b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+body.dark-theme .header-left h1 { background: linear-gradient(135deg, #86efac, #4ade80); -webkit-background-clip: text; background-clip: text; }
+.header-left p { color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.95rem; }
+.version-badge { background: var(--accent-green); color: white; padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-block; }
+body.dark-theme .version-badge { background: #4ade80; color: #1e293b; }
+
+.theme-toggle { background: #3b6e8f; padding: 0.5rem 1rem; font-size: 0.9rem; cursor: pointer; border-radius: 40px; border: none; color: white; font-weight: 600; transition: 0.2s; }
+body.dark-theme .theme-toggle { background: var(--accent-green); color: #1e293b; }
+.menu-container { position: relative; display: inline-block; }
+.menu-button { background: var(--accent-green); padding: 0.5rem 1.2rem; font-size: 0.9rem; cursor: pointer; border-radius: 40px; border: none; color: white; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+.menu-button:hover { background: #1f5430; transform: scale(0.97); }
+
+/* ✅ ИЗМЕНЕНИЕ: DROPDOWN НА МОБИЛЬНЫХ */
+.dropdown-menu { 
+    display: none; 
+    position: absolute; 
+    right: 0; /* По умолчанию справа */
+    top: 48px; 
+    background: var(--card-bg); 
+    border-radius: 24px; 
+    box-shadow: var(--shadow-lg); 
+    min-width: 280px; 
+    z-index: 1000; 
+    padding: 0.8rem 0; 
+    border: 1px solid var(--border-light); 
+    backdrop-filter: blur(8px); 
+}
+.dropdown-menu.show { display: block; animation: fadeIn 0.2s ease; }
+.dropdown-item { display: flex; align-items: center; gap: 12px; padding: 0.6rem 1.2rem; cursor: pointer; transition: background 0.2s; font-size: 0.9rem; color: var(--text-primary); }
+.dropdown-item:hover { background: var(--hover-bg); }
+.dropdown-item input { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-green); margin: 0; }
+.dropdown-item label { cursor: pointer; flex: 1; user-select: none; }
+.dropdown-divider { height: 1px; background: var(--border-light); margin: 0.4rem 0; }
+.section-hide { display: none !important; }
+.checklist-section { background: var(--card-bg); border-radius: 28px; padding: 1.2rem 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); }
+.checklist-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 0.6rem 1rem; background: #f1f5f9; border-radius: 40px; transition: all 0.2s; margin-bottom: 0.5rem; }
+body.dark-theme .checklist-header { background: #334155; }
+.checklist-header.collapsed { background: #eef2ff; border: 1px solid #c7d2fe; }
+body.dark-theme .checklist-header.collapsed { background: #1e293b; border-color: #4ade80; }
+.checklist-header h3 { font-size: 0.85rem; color: var(--text-primary); font-weight: 600; }
+.toggle-checklist { background: none; border: none; font-size: 1rem; cursor: pointer; padding: 4px 8px; color: var(--accent-green); transition: transform 0.2s; }
+.toggle-checklist.collapsed { transform: rotate(-90deg); }
+.checklist-content { overflow: visible; transition: opacity 0.3s ease, max-height 0.3s ease; }
+.checklist-content.collapsed { max-height: 0 !important; overflow: hidden; opacity: 0; }
+.checklist-grid { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem; }
+.checklist-item { background: var(--item-bg); border-radius: 16px; padding: 0.7rem 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-left: 4px solid var(--accent-green); transition: all 0.2s; }
+.checklist-item.critical { border-left-color: #d97706; }
+.checklist-item.completed { opacity: 0.7; background: #e8f5e9; }
+body.dark-theme .checklist-item.completed { background: #064e3b; }
+.checklist-info { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; flex: 1; cursor: pointer; }
+.checklist-name { font-weight: 600; }
+.checklist-critical-badge { background: #fee2e2; color: var(--critical-red); padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.7rem; margin-left: 6px; }
+.checklist-category { font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 20px; background: #e2e8f0; color: #1e293b; }
+.checklist-owner { font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 20px; background: #e0e7ff; color: #3730a3; }
+.checklist-status { font-size: 1.2rem; }
+.status-ready { color: var(--accent-green); }
+.status-missing { color: var(--critical-red); }
+.checklist-actions button { background: none; border: none; font-size: 1rem; cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 20px; }
+.checklist-checkbox { width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent-green); }
+.progress-container { margin-bottom: 1rem; }
+.progress-container div[style*="border-radius"] { background: #e2e8f0; border-radius: 20px; height: 24px; overflow: hidden; }
+#progressBarFill { width: 0%; background: var(--accent-green); height: 24px; border-radius: 20px; text-align: center; color: white; font-size: 0.75rem; line-height: 24px; transition: width 0.3s ease; }
+#progressStats { margin-top: 8px; font-size: 0.8rem; text-align: center; }
+.confirm-delete-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10002; animation: fadeIn 0.2s ease; }
+.confirm-delete-content { background: white; border-radius: 28px; max-width: 400px; width: 90%; padding: 2rem 2rem 1.5rem; text-align: center; box-shadow: 0 20px 35px rgba(0,0,0,0.2); }
+body.dark-theme .confirm-delete-content { background: #1e293b; color: #e2e8f0; }
+.confirm-delete-icon { font-size: 3rem; margin-bottom: 1rem; }
+.confirm-delete-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; }
+.confirm-delete-message { font-size: 1rem; margin-bottom: 1.5rem; color: var(--text-secondary); }
+.confirm-delete-actions { display: flex; gap: 1rem; justify-content: center; }
+.confirm-delete-actions button { padding: 0.6rem 1.8rem; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; font-size: 1rem; transition: 0.2s; }
+.confirm-delete-actions .btn-cancel { background: #e2e8f0; color: #1e293b; }
+body.dark-theme .confirm-delete-actions .btn-cancel { background: #475569; color: white; }
+.confirm-delete-actions .btn-confirm { background: var(--critical-red); color: white; }
+.confirm-delete-actions .btn-confirm:hover { background: #991b1b; }
+.map-section { background: var(--card-bg); border-radius: 28px; padding: 1.2rem 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); }
+.map-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 0.3rem 0; margin-bottom: 0.5rem; }
+.map-header h3 { font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+.toggle-map { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px 8px; color: var(--accent-green); transition: transform 0.2s; }
+.toggle-map.collapsed { transform: rotate(-90deg); }
+.map-content { overflow: hidden; transition: max-height 0.3s ease; }
+.map-content.collapsed { max-height: 0 !important; }
+#map { height: 400px; width: 100%; border-radius: 20px; margin-bottom: 1rem; z-index: 1; background: #f0f0f0; }
+.map-controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+.map-controls input, .map-controls select { padding: 0.5rem 1rem; border-radius: 40px; border: 1px solid var(--border-light); background: white; font-size: 0.85rem; }
+body.dark-theme .map-controls input, body.dark-theme .map-controls select { background: #1e293b; border-color: #475569; color: #e2e8f0; }
+.map-hint { font-size: 0.7rem; color: #6b7280; margin-top: 5px; margin-bottom: 10px; text-align: center; background: #f0fdf4; padding: 6px; border-radius: 16px; }
+body.dark-theme .map-hint { color: #94a8b8; background: #1e293b; }
+.points-list { overflow-y: auto; margin-top: 1rem; min-height: 60px; padding-right: 4px; }
+.points-list:empty::after { content: "Нет точек маршрута"; display: block; text-align: center; color: #6b7280; padding: 1rem; font-style: italic; }
+.point-item { background: var(--item-bg); border-radius: 16px; padding: 0.5rem 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; border-left: 4px solid var(--accent-green); cursor: pointer; transition: all 0.2s ease; }
+.point-item:hover { background: var(--hover-bg); transform: translateX(4px); }
+.point-item.selected { background: #d1fae5; border-left: 4px solid #059669; box-shadow: 0 2px 8px rgba(5,150,105,0.3); }
+.point-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1; }
+.point-name { font-weight: 600; }
+.point-coords { font-size: 0.7rem; color: #6b7280; }
+.point-type { font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 20px; }
+.point-type.camp { background: #dcfce7; color: #166534; }
+.point-type.water { background: #dbeafe; color: #1e40af; }
+.point-type.shop { background: #fed7aa; color: #9a3412; }
+.point-type.sight { background: #f3e8ff; color: #6b21a5; }
+.point-type.custom { background: #e0e7ff; color: #3730a3; }
+.point-actions button { background: none; border: none; font-size: 1rem; cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 20px; transition: transform 0.2s; }
+.custom-type-input { display: none; margin-top: 5px; }
+.templates-section, .share-section, .participants-section { background: var(--card-bg); border-radius: 28px; padding: 1.2rem 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); }
+.section-title { font-weight: 600; margin-bottom: 0.8rem; color: var(--text-primary); font-size: 0.9rem; }
+.templates-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 0.6rem 1rem; background: #f1f5f9; border-radius: 40px; transition: all 0.2s; margin-bottom: 0.5rem; }
+.templates-header.collapsed { background: #eef2ff; border: 1px solid #c7d2fe; }
+.templates-header h3 { font-size: 0.85rem; color: var(--text-primary); font-weight: 600; }
+.toggle-templates { background: none; border: none; font-size: 1rem; cursor: pointer; padding: 4px 8px; color: var(--accent-green); transition: transform 0.2s; }
+.toggle-templates.collapsed { transform: rotate(-90deg); }
+.templates-content { overflow: hidden; transition: max-height 0.3s ease; }
+.templates-content.collapsed { max-height: 0 !important; }
+.templates-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem; align-items: center; }
+.template-item { display: inline-flex; align-items: center; gap: 5px; background: #e2e8f0; border-radius: 40px; padding: 0.3rem 0.3rem 0.3rem 1rem; font-size: 0.85rem; transition: all 0.2s; cursor: context-menu; }
+.template-item span { cursor: pointer; padding: 0.2rem 0; font-weight: 500; }
+.template-delete { background: none; border: none; font-size: 1rem; cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 30px; color: var(--critical-red); }
+.template-edit { background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.2rem 0.4rem; border-radius: 30px; color: #3b6e8f; }
+.add-template-btn, .action-btn { background: #e2e8f0; color: #1a3a28; padding: 0.3rem 1rem; border-radius: 40px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; border: none; }
+.templates-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 0.5rem; margin-bottom: 0.5rem; align-items: center; }
+.share-link-container { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+.share-link { flex: 1; padding: 0.5rem 1rem; background: #f1f5f9; border: 1px solid var(--border-light); border-radius: 40px; font-size: 0.8rem; color: var(--text-primary); word-break: break-all; }
+.participants-list { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-bottom: 1rem; }
+.participant-badge { background: #eef3ec; padding: 0.5rem 1rem; border-radius: 40px; font-weight: 500; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; cursor: context-menu; }
+.add-participant-form { display: flex; gap: 8px; margin-top: 0.5rem; align-items: stretch; }
+.add-participant-form input { padding: 0.5rem 1rem; border-radius: 60px; border: 1px solid var(--border-light); font-size: 0.9rem; flex: 1; min-height: 42px; }
+.add-btn {
+background: var(--accent-green);
+border: none;
+padding: 0.5rem 1.2rem;
+border-radius: 40px;
+font-weight: 600;
+color: white;
+cursor: pointer;
+transition: 0.2s;
+font-size: 0.85rem;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+white-space: nowrap;
+min-height: 42px;
+width: 100%;
+}
+.add-btn:hover { background: #1f5430; transform: scale(0.97); }
+@media (min-width: 701px) { .add-btn { width: auto; } }
+button { background: var(--accent-green); border: none; padding: 0.5rem 1.2rem; border-radius: 40px; font-weight: 600; color: white; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
+button:hover { background: #1f5430; transform: scale(0.97); }
+.btn-secondary { background: #3b6e8f; }
+.btn-small { padding: 0.3rem 0.8rem; font-size: 0.75rem; }
+.btn-warning { background: #d97706; }
+.dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+.card { background: var(--card-bg); backdrop-filter: blur(2px); border-radius: 32px; box-shadow: var(--shadow-lg); padding: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.5); }
+.card-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; border-left: 5px solid var(--accent-green); padding-left: 14px; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.card-title-left { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+.toggle-switch-small { display: flex; align-items: center; gap: 8px; background: #f1f5f9; padding: 0.3rem 0.8rem; border-radius: 40px; font-size: 0.75rem; }
+.toggle-switch-small input { width: 32px; height: 16px; appearance: none; background: #cbd5e1; border-radius: 20px; position: relative; cursor: pointer; }
+.toggle-switch-small input:checked { background: var(--accent-green); }
+.toggle-switch-small input::before { content: ''; width: 12px; height: 12px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: 0.2s; }
+.toggle-switch-small input:checked::before { left: 18px; }
+.export-group { display: flex; gap: 6px; align-items: center; }
+.export-group select { padding: 0.3rem 0.6rem; border-radius: 40px; border: 1px solid var(--border-light); font-size: 0.75rem; background: white; cursor: pointer; }
+.filters-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 0.6rem 1rem; background: #f1f5f9; border-radius: 40px; transition: all 0.2s; margin-bottom: 0.5rem; }
+.filters-header.collapsed { background: #eef2ff; border: 1px solid #c7d2fe; }
+.filters-header h3 { font-size: 0.85rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+.filter-badge { background: var(--accent-green); color: white; font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; }
+.filter-badge.inactive { background: #94a3b8; }
+.toggle-filters { background: none; border: none; font-size: 1rem; cursor: pointer; padding: 4px 8px; color: var(--accent-green); transition: transform 0.2s; }
+.toggle-filters.collapsed { transform: rotate(-90deg); }
+.filters-content { overflow: hidden; transition: max-height 0.3s ease; }
+.filters-content.collapsed { max-height: 0 !important; }
+.filters-bar { background: #f8fafc; border-radius: 20px; padding: 1rem; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; border: 1px solid #e2e8f0; margin-bottom: 12px; }
+.filter-group { display: flex; align-items: center; gap: 8px; background: white; padding: 0.3rem 0.8rem; border-radius: 40px; border: 1px solid var(--border-light); }
+.filter-group label { font-weight: 600; font-size: 0.8rem; }
+.filter-group select, .filter-group input { padding: 0.3rem 0.5rem; border-radius: 20px; border: 1px solid var(--border-light); cursor: pointer; }
+.search-box input { padding: 0.4rem 0.8rem; border-radius: 40px; border: 1px solid var(--border-light); width: 200px; }
+.form-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; align-items: stretch; }
+.form-row input, .form-row select { padding: 0.5rem 0.8rem; border-radius: 24px; border: 1px solid var(--border-light); background: white; transition: border 0.2s, box-shadow 0.2s; min-height: 42px; }
+.form-row label.critical-label {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+padding: 0.5rem 0.8rem;
+border-radius: 24px;
+border: 1px solid var(--border-light);
+background: white;
+min-width: fit-content;
+cursor: pointer;
+user-select: none;
+height: 42px;
+margin: 0;
+}
+.form-row label.critical-label input[type="checkbox"] {
+width: 20px;
+height: 20px;
+margin: 0;
+cursor: pointer;
+accent-color: var(--critical-red);
+flex-shrink: 0;
+vertical-align: middle;
+}
+.form-row label.critical-label span.critical-icon {
+font-size: 1.2rem;
+line-height: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+height: 20px;
+}
+.modal-content label.critical-label {
+display: flex !important;
+align-items: center;
+gap: 10px;
+padding: 0.75rem 1rem;
+border-radius: 16px;
+border: 1px solid var(--border-light);
+background: white;
+cursor: pointer;
+margin-bottom: 1rem;
+height: auto;
+min-height: 44px;
+}
+.modal-content label.critical-label input[type="checkbox"] {  width: 22px;
+height: 22px;
+margin: 0;
+flex-shrink: 0;
+accent-color: var(--critical-red);
+vertical-align: middle;
+}
+.modal-content label.critical-label span.critical-icon {
+font-size: 1.3rem;
+line-height: 1;
+display: flex;
+align-items: center;
+}
+.custom-category-input { display: none; margin-top: 8px; }
+.items-list { margin-top: 1rem; }
+.item-entry { background: var(--item-bg); border-radius: 20px; padding: 0.7rem 1rem; margin-bottom: 0.6rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; border-left: 4px solid var(--accent-green); cursor: context-menu; }
+.item-details { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.85rem; font-weight: 500; align-items: center; }
+.critical-badge { background: #fee2e2; color: var(--critical-red); padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.7rem; }
+.item-actions { display: flex; gap: 6px; }
+.point-actions { display: flex; gap: 6px; }
+.summary { background: #eef2e9; border-radius: 24px; padding: 1rem; margin-top: 1rem; font-weight: 600; }
+.debt-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+.debt-card { background: var(--item-bg); border-radius: 24px; padding: 1rem; }
+.debt-card h4 { color: var(--text-primary); margin-bottom: 0.8rem; font-size: 0.9rem; border-bottom: 2px solid var(--accent-green); padding-bottom: 0.5rem; text-align: center; }
+.debt-list { list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.debt-list li { background: white; border-radius: 16px; padding: 0.75rem; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.5rem; border: 1px solid #e2e8f0; }
+.participant-name { font-weight: 700; background: #eef3ec; padding: 0.25rem 0.75rem; border-radius: 40px; }
+.spent-amount, .balance-positive, .balance-negative, .balance-neutral, .transfer-amount { font-weight: 700; padding: 0.3rem 0.8rem; border-radius: 40px; font-size: 0.85rem; }
+.spent-amount { background: #e8eaf6; color: #1a3a28; }
+.balance-positive { background: #e8f5e9; color: var(--accent-green); }
+.balance-negative { background: #ffebee; color: var(--critical-red); }
+.balance-neutral { background: #f3f4f6; color: #6b7280; }
+.transfer-amount { background: #e8f5e9; color: var(--accent-green); }
+.transfer-from-to { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.transfer-arrow { color: var(--accent-green); font-weight: bold; }
+.export-buttons { display: flex; gap: 8px; margin-top: 1rem; flex-wrap: wrap; }
+.format-select { background: white; border: 1px solid var(--border-light); border-radius: 40px; padding: 0.3rem 0.8rem; font-size: 0.85rem; cursor: pointer; }
+.chart-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 0.5rem 0; margin-bottom: 0.5rem; }
+.chart-header h4 { color: var(--text-primary); font-size: 1rem; }
+.toggle-chart { background: none; border: none; font-size: 1rem; cursor: pointer; padding: 4px 8px; color: var(--accent-green); transition: transform 0.2s; }
+.toggle-chart.collapsed { transform: rotate(-90deg); }
+.chart-content { overflow: hidden; transition: max-height 0.3s ease; }
+.chart-content.collapsed { max-height: 0 !important; }
+.charts-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 1.5rem; }
+.chart-card, .stats-block { background: white; border-radius: 24px; padding: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+canvas { max-height: 250px; width: 100% !important; }
+.stats-block ul { list-style: none; padding-left: 0; }
+.stats-block li { padding: 0.3rem 0; border-bottom: 1px solid #e2e8f0; }
+.context-menu { position: fixed; background: white; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); padding: 0.5rem; min-width: 200px; z-index: 2000; border: 1px solid #e2e8f0; }
+.context-menu-item { padding: 0.6rem 1rem; cursor: pointer; border-radius: 12px; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+.context-menu-item:hover { background: #eef3ec; }
+.context-menu-divider { height: 1px; background: #e2e8f0; margin: 0.3rem 0; }
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+.modal-content { background: white; border-radius: 32px; padding: 2rem; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
+.modal-content h3 { margin-bottom: 1rem; }
+.modal-content input, .modal-content select { width: 100%; padding: 0.75rem 1rem; margin-bottom: 1rem; border-radius: 16px; border: 1px solid var(--border-light); font-size: 1rem; }
+.custom-marker-icon { background: transparent !important; border: none !important; }
+.leaflet-marker-icon.custom-marker-icon { margin-left: -20px !important; margin-top: -20px !important; }
+.critical-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10002; animation: fadeIn 0.2s ease; }
+.critical-modal-content {
+background: white;
+border-radius: 24px;
+max-width: 420px;
+width: 90%;
+padding: 0;
+box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+overflow: hidden;
+}
+body.dark-theme .critical-modal-content { background: #1e293b; color: #e2e8f0; }
+.critical-modal-header { padding: 1.5rem 1.5rem 0.8rem; display: flex; align-items: center; gap: 12px; }
+.critical-modal-header.warning { background: linear-gradient(135deg, #fee2e2, #fef2f2); border-bottom: 1px solid #fecaca; }
+body.dark-theme .critical-modal-header.warning { background: linear-gradient(135deg, #7f1d1d, #991b1b); border-bottom-color: #b91c1c; }
+.critical-modal-header.success { background: linear-gradient(135deg, #dcfce7, #f0fdf4); border-bottom: 1px solid #86efac; }
+body.dark-theme .critical-modal-header.success { background: linear-gradient(135deg, #064e3b, #065f46); border-bottom-color: #22c55e; }
+.critical-modal-header h3 { font-size: 1.2rem; font-weight: 700; margin: 0; flex: 1; }
+.critical-modal-header.warning h3 { color: var(--critical-red); }
+.critical-modal-header.success h3 { color: #166534; }
+body.dark-theme .critical-modal-header.success h3 { color: #86efac; }
+.critical-modal-icon { font-size: 2rem; }
+.critical-modal-close { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #94a3b8; padding: 0 4px; line-height: 1; transition: 0.2s; }
+.critical-modal-close:hover { color: var(--critical-red); }
+.critical-modal-list { padding: 1rem 1.5rem; max-height: 300px; overflow-y: auto; }
+.critical-modal-item { display: flex; align-items: center; gap: 12px; padding: 0.7rem 0.8rem; background: #fff5f5; border-radius: 12px; margin-bottom: 0.5rem; border-left: 3px solid var(--critical-red); }
+body.dark-theme .critical-modal-item { background: #451a1a; }
+.critical-modal-item span { font-size: 1.3rem; }
+.critical-modal-item div div:first-child { font-weight: 600; color: #1a3a28; }
+.critical-modal-item div div:last-child { font-size: 0.8rem; color: #6b7280; }
+body.dark-theme .critical-modal-item div div:first-child { color: #e2e8f0; }
+body.dark-theme .critical-modal-item div div:last-child { color: #94a8b8; }
+.critical-modal-footer { padding: 1rem 1.5rem; text-align: center; border-top: 1px solid #e2e8f0; }
+body.dark-theme .critical-modal-footer { border-color: #475569; }
+.critical-modal-ok { background: var(--critical-red); color: white; border: none; padding: 0.7rem 2rem; border-radius: 40px; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: 0.2s; }
+.critical-modal-ok:hover { background: #991b1b; transform: scale(0.97); }
+.critical-modal-ok.success { background: #22c55e; }
+.critical-modal-ok.success:hover { background: #16a34a; }
+.map-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10002; animation: fadeIn 0.2s ease; }
+.map-modal-content { background: white; border-radius: 24px; max-width: 400px; width: 90%; padding: 1.5rem; box-shadow: 0 20px 35px rgba(0,0,0,0.2); }
+body.dark-theme .map-modal-content { background: #1e293b; color: #e2e8f0; }
+.map-modal-content h3 { margin-bottom: 1rem; font-size: 1.2rem; }
+.map-modal-field { margin-bottom: 0.8rem; }
+.map-modal-field label { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 0.3rem; }
+.map-modal-field input, .map-modal-field select { width: 100%; padding: 0.5rem 0.8rem; border-radius: 12px; border: 1px solid var(--border-light); font-size: 0.9rem; }
+.coord-row { display: flex; gap: 8px; }
+.coord-row input { flex: 1; }
+.map-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 1rem; }
+.error-text { color: var(--critical-red); font-size: 0.75rem; display: none; margin-top: 4px; }
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 40px; font-size: 0.9rem; z-index: 9999; white-space: nowrap; box-shadow: 0 8px 20px rgba(0,0,0,0.2); animation: fadeInUp 0.3s ease; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+.pwa-status {
+position: fixed; bottom: 20px; right: 20px;
+background: #fbbf24; color: #1e293b;
+padding: 0.5rem 1rem; border-radius: 20px;
+font-size: 0.8rem; font-weight: 600;
+box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+z-index: 9999; transition: all 0.3s;
+pointer-events: none;
+}
+.pwa-status.online { background: #22c55e; color: white; }
+.pwa-status.offline { background: #ef4444; color: white; }
+.import-progress-overlay {
+position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+display: flex; align-items: center; justify-content: center;
+z-index: 10003;
+}
+.import-progress-content {
+background: white; border-radius: 24px;
+max-width: 400px; width: 90%; padding: 2rem;
+text-align: center;
+}
+body.dark-theme .import-progress-content { background: #1e293b; color: #e2e8f0; }
+.import-progress-bar {
+width: 100%; height: 20px; background: #e2e8f0;
+border-radius: 20px; overflow: hidden; margin: 1rem 0;
+}
+.import-progress-fill {
+height: 100%; background: var(--accent-green);
+width: 0%; transition: width 0.3s ease;
+}
+.help-modal {
+display: none; position: fixed; top: 0; left: 0;
+width: 100%; height: 100%;
+background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+z-index: 10004; align-items: center; justify-content: center;
+}
+.help-modal.show { display: flex; }
+.help-content {
+background: white; border-radius: 28px;
+max-width: 700px; width: 90%; max-height: 80vh;
+overflow-y: auto; padding: 2rem;
+box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+body.dark-theme .help-content { background: #1e293b; color: #e2e8f0; }
+.help-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.help-header h2 { color: var(--text-primary); font-size: 1.8rem; }
+.help-close {
+background: none; border: none; font-size: 2rem;
+cursor: pointer; color: var(--text-secondary);
+padding: 0; line-height: 1;
+}
+.help-close:hover { color: var(--critical-red); }
+.help-section { margin-bottom: 1.5rem; }
+.help-section h3 { color: var(--accent-green); margin-bottom: 0.8rem; font-size: 1.2rem; }
+.help-section p, .help-section li { line-height: 1.6; color: var(--text-secondary); margin-bottom: 0.5rem; }
+.help-section ul { padding-left: 1.5rem; }
+.help-key {
+background: #f1f5f9; padding: 0.2rem 0.5rem;
+border-radius: 6px; font-family: monospace;
+font-size: 0.9rem; border: 1px solid #cbd5e1;
+}
+body.dark-theme .help-key { background: #334155; border-color: #475569; }
+
+/* ✅ МЕДИА ЗАПРОСЫ ДЛЯ МОБИЛЬНЫХ */
+@media (max-width: 700px) {
+body { padding: 1rem 0.75rem; }
+.header { flex-direction: column; text-align: center; align-items: center; gap: 1.5rem; }
+/* На мобильных заголовок по центру, но плашка версии все еще слева относительно контейнера заголовка */
+.header-left { align-items: center; text-align: center; }
+.dashboard { grid-template-columns: 1fr; gap: 1rem; }
+#map { height: 300px; }
+.checklist-item, .item-entry, .point-item { padding: 0.8rem 0.9rem; gap: 8px; }
+.item-details { gap: 8px; }
+.point-info { gap: 8px; }
+.checklist-info { gap: 10px; }
+.form-row { gap: 6px; }
+.form-row input, .form-row select { padding: 0.45rem 0.7rem; min-height: 40px; }
+.filters-bar { gap: 8px; padding: 0.8rem; }
+.filter-group { padding: 0.25rem 0.6rem; }
+.search-box input { width: 100%; }
+.point-actions { flex-shrink: 0; }
+.point-actions button { padding: 0.15rem 0.4rem; }
+.item-actions { flex-shrink: 0; display: flex; gap: 4px; }
+.item-actions button { padding: 0.15rem 0.4rem; }
+.checklist-actions button { padding: 0.15rem 0.4rem; }
+.add-participant-form { flex-wrap: wrap; }
+.add-participant-form input { min-height: 40px; }
+.add-participant-form button { min-height: 40px; }
+.form-row label.critical-label { height: 40px; padding: 0.45rem 0.7rem; }
+.form-row label.critical-label input[type="checkbox"] { width: 18px; height: 18px; }
+.form-row label.critical-label span.critical-icon { font-size: 1.1rem; }
+.add-btn { padding: 0.45rem 0.9rem; font-size: 0.8rem; min-height: 40px; }
+.critical-modal-content { max-width: 95%; }
+.map-modal-content { max-width: 95%; padding: 1.2rem; }
+.help-content { padding: 1.5rem; }
+
+/* ✅ ИСПРАВЛЕНИЕ ВЫПАДАЮЩЕГО МЕНЮ НА МОБИЛЬНЫХ */
+.dropdown-menu { 
+    right: auto; 
+    left: 0; 
+    width: 100%; 
+    min-width: auto;
+    border-radius: 16px;
+}
+.menu-container { width: 100%; }
+.menu-button { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 480px) {
+.header-left h1 { font-size: 2rem; }
+.card-title { font-size: 1.25rem; }
+.debt-container { grid-template-columns: 1fr; }
+.charts-container { grid-template-columns: 1fr; }
+.map-controls { flex-direction: column; align-items: stretch; }
+.map-controls input, .map-controls select { width: 100%; }
+.form-row > * { flex: 1 1 calc(50% - 4px) !important; min-width: 0; }
+.form-row > .add-btn { flex: 1 1 100% !important; }
+.checklist-checkbox { width: 22px; height: 22px; }
+.modal-content label.critical-label { padding: 0.65rem 0.85rem; min-height: 40px; }
+.modal-content label.critical-label input[type="checkbox"] { width: 20px; height: 20px; }
+.modal-content label.critical-label span.critical-icon { font-size: 1.2rem; }
+}
+.input-error { border: 2px solid var(--critical-red) !important; box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.15) !important; }
+.validation-hint { font-size: 0.72rem; color: var(--critical-red); margin-top: 2px; min-height: 14px; display: none; width: 100%; padding-left: 4px; }
+.validation-hint.show { display: block; animation: fadeIn 0.2s ease; }
+.read-only-badge {
+display: none;
+background: #dcfce7;
+color: #166534;
+padding: 0.5rem 1rem;
+border-radius: 20px;
+font-weight: 600;
+text-align: center;
+margin-bottom: 1rem;
+border: 1px solid #86efac;
+}
+.read-only-badge i { margin-right: 8px; }
+body.view-mode .read-only-badge { display: block; }
+.point-label {
+background: rgba(255, 255, 255, 0.95) !important;
+border: 1px solid #cbd5e1 !important;
+border-radius: 8px !important;
+padding: 4px 8px !important;
+font-size: 12px !important;
+font-weight: 600 !important;
+color: #1a3a28 !important;
+white-space: nowrap !important;
+box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<div class="header-left">
+<h1>🏕️ Походный Планировщик PRO</h1>
+<p><span class="version-badge">Версия 1.00.03</span></p>
+</div>
+
+<!-- ✅ ПОРЯДОК КНОПОК: МЕНЮ, ФИЛЬТРЫ, ТЕМА, ПОМОЩЬ -->
+<div style="display:flex; align-items:center; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+<!-- 1. МЕНЮ -->
+<div class="menu-container">
+<button id="menuButton" class="menu-button">☰ Меню</button>
+<div id="dropdownMenu" class="dropdown-menu">
+<div class="dropdown-item" id="downloadLogBtn" style="cursor:pointer; font-weight:600;">📜 Скачать лог</div>
+<div class="dropdown-divider"></div>
+<div class="dropdown-item" style="font-size: 0.85rem; color: #6b7280; padding-bottom: 4px;">📦 Экспорт / Импорт</div>
+<div class="dropdown-item" style="flex-direction: column; gap: 8px; padding: 0.5rem 1rem;">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; justify-content: center;">
+<label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;">
+<input type="checkbox" id="expAll" checked onchange="window.toggleExpCheckboxes('all')" style="accent-color:var(--accent-green);"> Всё
+</label>
+<label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;">
+<input type="checkbox" id="expGear" checked onchange="window.toggleExpCheckboxes('gear')" style="accent-color:var(--accent-green);"> Снаряжение
+</label>
+<label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;">
+<input type="checkbox" id="expExpenses" checked onchange="window.toggleExpCheckboxes('expenses')" style="accent-color:var(--accent-green);"> Траты
+</label>
+</div>
+<div style="display: flex; width: 100%; gap: 6px;">
+<select id="fullExportFormat" class="format-select" style="flex: 1;">
+<option value="json">JSON</option>
+<option value="txt">TXT</option>
+<option value="csv">CSV</option>
+</select>
+<button id="exportFullBtn" class="btn-secondary btn-small" style="flex: 1;">📤 Экспорт</button>
+</div>
+<button id="importDataBtn" class="btn-secondary btn-small" style="width: 100%;">📥 Импорт</button>
+<input type="file" id="importFile" style="display:none" accept=".json">
+</div>
+</div>
+</div>
+<!-- 2. ФИЛЬТРЫ ЭКРАНА -->
+<div class="menu-container">
+<button id="screenFiltersBtn" class="menu-button" style="background:#3b6e8f">🖥️ Фильтры экрана</button>
+<div id="screenFiltersDropdown" class="dropdown-menu">
+<div class="dropdown-item"><input type="checkbox" id="toggleMapSection" checked> <label for="toggleMapSection">🗺️ Карта</label></div>
+<div class="dropdown-item"><input type="checkbox" id="toggleChecklistSection" checked> <label for="toggleChecklistSection">✅ Чек-лист</label></div>
+<div class="dropdown-item"><input type="checkbox" id="toggleTemplatesSection" checked> <label for="toggleTemplatesSection">📋 Шаблоны</label></div>
+<div class="dropdown-item"><input type="checkbox" id="toggleShareSection" checked> <label for="toggleShareSection">🔗 Доступ</label></div>
+<div class="dropdown-item"><input type="checkbox" id="toggleParticipantsSection" checked> <label for="toggleParticipantsSection">👥 Участники</label></div>
+<div class="dropdown-item"><input type="checkbox" id="toggleGearCard" checked> <label for="toggleGearCard">🎒 Снаряжение</label></div>
+<div class="dropdown-item"><input type="checkbox" id="toggleExpenseCard" checked> <label for="toggleExpenseCard">💰 Расходы</label></div>
+<div class="dropdown-item"><input type="checkbox" id="toggleChartsCard" checked> <label for="toggleChartsCard">📊 Графики</label></div>
+</div>
+</div>
+<!-- 3. ТЕМА -->
+<button id="themeToggleBtn" class="theme-toggle">🌙 Тёмная тема</button>
+<!-- 4. ПОМОЩЬ -->
+<button id="helpBtn" class="btn-secondary" style="background:#059669">❓ Помощь</button>
+</div>
+</div>
+<div id="readOnlyBadge" class="read-only-badge">
+<i>👁️</i> Режим просмотра. Изменения недоступны.
+</div>
+<!-- МОДАЛЬНОЕ ОКНО ПОМОЩИ -->
+<div id="helpModal" class="help-modal" role="dialog" aria-labelledby="helpTitle" aria-modal="true">
+<div class="help-content">
+<div class="help-header">
+<h2 id="helpTitle">📖 Как пользоваться приложением</h2>
+<button class="help-close" id="helpClose" aria-label="Закрыть помощь">&times;</button>
+</div>
+<div class="help-section">
+<h3>🎒 Добавление снаряжения</h3>
+<ol>
+<li>Введите <strong>название</strong> предмета (например, «Палатка»)</li>
+<li>Выберите <strong>категорию</strong> (Снаряжение, Еда, Кухня и т.д.)</li>
+<li>Укажите <strong>вес</strong> и <strong>цену</strong></li>
+<li>Выберите <strong>владельца</strong> из списка участников</li>
+<li>Отметьте 🔥 если предмет <strong>критично важен</strong></li>
+<li>Нажмите <strong>«➕ Добавить»</strong></li>
+</ol>
+</div>
+<div class="help-section">
+<h3>💰 Учёт расходов</h3>
+<ol>
+<li>В разделе <strong>«Расходы»</strong> введите описание покупки</li>
+<li>Укажите <strong>сумму</strong> и <strong>категорию</strong></li>
+<li>Выберите <strong>кто оплатил</strong></li>
+<li>Приложение <strong>автоматически</strong> рассчитает, кто кому должен</li>
+</ol>
+</div>
+<div class="help-section">
+<h3>🗺️ Карта маршрута</h3>
+<ul>
+<li><strong>Двойной клик</strong> на карте — добавить точку</li>
+<li><strong>Клик</strong> на маркере — выделить точку</li>
+<li><strong>ПКМ</strong> (правая кнопка) — меню действий</li>
+<li><strong>Перетаскивание</strong> маркера — изменить позицию</li>
+</ul>
+</div>
+<div class="help-section">
+<h3>✅ Чек-лист сборов</h3>
+<ul>
+<li>Отмечайте предметы галочками по мере сбора</li>
+<li>Прогресс-бар покажет <strong>% готовности</strong></li>
+<li>Кнопка <strong>«⚠️ Показать несобранное критичное»</strong> — что важно не забыть</li>
+</ul>
+</div>
+<div class="help-section">
+<h3>📋 Шаблоны походов</h3>
+<ul>
+<li><strong>Сохраните</strong> текущий поход как шаблон для повторного использования</li>
+<li><strong>Загрузите</strong> шаблон из файла (.json)</li>
+<li><strong>Дублируйте</strong> поход для создания похожего</li>
+</ul>
+</div>
+<div class="help-section">
+<h3>🔗 Совместный доступ</h3>
+<ol>
+<li>Нажмите <strong>«🔗 Создать ссылку»</strong></li>
+<li>Выберите режим: <strong>редактирование</strong> или <strong>только чтение</strong></li>
+<li>Отправьте ссылку участникам</li>
+</ol>
+</div>
+<div class="help-section">
+<h3>⌨️ Горячие клавиши</h3>
+<ul>
+<li><span class="help-key">Ctrl+Z</span> — отменить последнее действие</li>
+<li><span class="help-key">Ctrl+S</span> — сохранить (автосохранение каждые 0.5 сек)</li>
+</ul>
+</div>
+<div class="help-section">
+<h3>💾 Экспорт и импорт</h3>
+<ul>
+<li>Нажмите <strong>«☰ Меню»</strong> в верхней панели</li>
+<li>Отметьте галочками что экспортировать (Всё, Снаряжение, Траты)</li>
+<li>Выберите формат и нажмите <strong>Экспорт</strong> или <strong>Импорт</strong></li>
+</ul>
+</div>
+<div class="help-section">
+<h3>🖥️ Управление видимостью разделов</h3>
+<ul>
+<li>Нажмите кнопку <strong>«🖥️ Фильтры экрана»</strong> в верхней панели</li>
+<li>Отметьте галочками разделы, которые хотите видеть на экране</li>
+<li>Снимите галочки, чтобы скрыть ненужные разделы</li>
+</ul>
+</div>
+<div class="help-section">
+<h3>🌐 Офлайн-работа</h3>
+<p>Приложение работает <strong>без интернета</strong>! Все данные сохраняются в браузере. Индикатор в правом нижнем углу покажет статус подключения.</p>
+</div>
+</div>
+</div>
+<!-- ПРОГРЕСС-БАР ИМПОРТА -->
+<div id="importProgress" class="import-progress-overlay" style="display:none;" role="alert" aria-live="polite">
+<div class="import-progress-content">
+<h3>📂 Импорт данных...</h3>
+<div class="import-progress-bar">
+<div id="importProgressFill" class="import-progress-fill"></div>
+</div>
+<p id="importProgressText">Загрузка 0%</p>
+</div>
+</div>
+<div id="mapBlock" class="map-section"><div class="map-header" id="mapHeader"><h3>🗺️ Карта маршрута</h3><button class="toggle-map" id="toggleMap" aria-expanded="true" aria-controls="mapContent">▼</button></div><div class="map-content" id="mapContent"><div id="map" role="application" aria-label="Карта маршрута"></div><div class="map-hint">💡 Подсказки: Двойной клик — добавить точку; Клик на маркере/списке — выделить; ПКМ — меню; Перетаскивание маркера — изменить позицию.</div><div class="map-controls"><input type="text" id="pointName" placeholder="Название точки" autocomplete="off" aria-label="Название точки"><input type="text" id="pointLat" placeholder="Широта" autocomplete="off" aria-label="Широта"><input type="text" id="pointLng" placeholder="Долгота" autocomplete="off" aria-label="Долгота"><select id="pointType" aria-label="Тип точки"><option value="camp">🏕️ Стоянка</option><option value="water">💧 Вода</option><option value="shop">🛒 Магазин</option><option value="sight">🏛️ Достопримечательность</option><option value="__custom__">✨ Свой вариант...</option></select><div id="pointCustomTypeDiv" class="custom-type-input"><input type="text" id="pointCustomType" placeholder="Введите свой тип точки"></div><button id="addPointBtn" class="btn-secondary">➕ Добавить точку</button><button id="clearPointsBtn" class="btn-warning">🗑️ Очистить всё</button></div><div id="pointsList" class="points-list" role="list" aria-label="Список точек маршрута"></div></div></div>
+<div id="templatesBlock" class="templates-section"><div class="templates-header" id="templatesHeader"><h3>📋 Шаблоны походов</h3><button class="toggle-templates" id="toggleTemplates" aria-expanded="true" aria-controls="templatesContent">▼</button></div><div class="templates-content" id="templatesContent"><div class="templates-row" id="templatesList"></div><div class="templates-row"><button id="addNewTemplateBtn" class="add-template-btn">➕ Добавить шаблон</button></div><div class="templates-actions"><button id="saveCurrentTemplateBtn" class="action-btn">💾 Сохранить текущий как шаблон</button><button id="loadTemplateFileBtn" class="action-btn">📁 Загрузить шаблон из файла</button><button id="duplicateTripBtn" class="action-btn">🔄 Дублировать текущий поход</button></div></div></div><input type="file" id="templateFileInput" style="display:none" accept=".json">
+<div id="checklistBlock" class="checklist-section"><div class="checklist-header" id="checklistHeader"><h3>✅ Чек-лист сборов</h3><button class="toggle-checklist" id="toggleChecklist" aria-expanded="true" aria-controls="checklistContent">▼</button></div><div class="checklist-content" id="checklistContent"><div style="display: flex; gap: 8px; margin-bottom: 12px;"><button id="checkAllBtn" class="btn-small">✅ Отметить всё</button><button id="uncheckAllBtn" class="btn-small">❌ Снять всё</button><button id="showMissingCriticalBtn" class="btn-small btn-warning">⚠️ Показать несобранное критичное</button></div><div class="progress-container"><div style="background: #e2e8f0; border-radius: 20px; height: 24px; overflow: hidden;"><div id="progressBarFill" style="width: 0%; background: var(--accent-green); height: 24px; border-radius: 20px; text-align: center; color: white; font-size: 0.75rem; line-height: 24px;" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div></div><div id="progressStats" style="margin-top: 8px; font-size: 0.8rem; text-align: center;">Готовность: 0 из 0 предметов (0%)</div></div><div id="checklistContainer" class="checklist-grid" role="list" aria-label="Чек-лист снаряжения"></div></div></div>
+<div id="shareBlock" class="share-section"><div class="section-title">👥 Совместный доступ</div><div class="share-link-container"><input type="text" id="shareLink" class="share-link" readonly placeholder="Сгенерируйте ссылку для доступа" aria-label="Ссылка для доступа"><button id="generateShareBtn" class="btn-secondary">🔗 Создать ссылку</button><button id="copyShareBtn" class="btn-secondary">📋 Копировать</button></div></div>
+<div id="participantsBlock" class="participants-section"><div class="section-title">👥 Участники похода:</div><div class="participants-list" id="participantsList" role="list" aria-label="Список участников"></div><div class="add-participant-form"><input type="text" id="newParticipantName" placeholder="Имя участника" autocomplete="off" aria-label="Имя нового участника"><button id="addParticipantBtn" class="add-btn">➕ Добавить</button></div></div>
+<div class="dashboard">
+<div id="gearBlock" class="card"><div class="card-title"><div class="card-title-left"><span>🎒 Снаряжение</span><div class="toggle-switch-small"><span>🏷️ Учитывать в тратах</span><input type="checkbox" id="includeGearInDebtsToggle" aria-label="Учитывать стоимость снаряжения в расчёте долгов"></div></div></div><div class="filters-header" id="gearFiltersHeader"><h3><span>🔍 Фильтры</span><span class="filter-badge" id="gearFilterBadge">активны</span></h3><button class="toggle-filters" id="toggleGearFilters" aria-expanded="true" aria-controls="gearFiltersContent">▼</button></div><div class="filters-content" id="gearFiltersContent"><div class="filters-bar"><div class="filter-group"><label for="gearCategoryFilter">Категория:</label><select id="gearCategoryFilter" aria-label="Фильтр по категории"><option value="all">Все</option></select></div><div class="filter-group"><label for="gearOwnerFilter">Владелец:</label><select id="gearOwnerFilter" aria-label="Фильтр по владельцу"><option value="all">Все</option></select></div><div class="filter-group"><label for="gearWeightFilter">Вес:</label><select id="gearWeightFilter" aria-label="Фильтр по весу"><option value="all">Все</option><option value="light">Лёгкие (<0.5кг)</option><option value="medium">Средние (0.5-2кг)</option><option value="heavy">Тяжёлые (>2кг)</option></select></div><div class="search-box"><input type="text" id="gearSearch" placeholder="🔍 Умный поиск..." aria-label="Поиск снаряжения"></div></div></div><div class="form-row"><input type="text" id="gearName" placeholder="Название" style="flex:2" autocomplete="off" aria-required="true"><select id="gearCategory" style="flex:1" aria-label="Категория снаряжения"><option value="Снаряжение">🎒 Снаряжение</option><option value="Еда">🍖 Еда</option><option value="Кухня">🍳 Кухня</option><option value="Аптечка">💊 Аптечка</option><option value="Инструменты">🔧 Инструменты</option><option value="Одежда">👔 Одежда</option><option value="Прочее">📦 Прочее</option><option value="__custom__">✨ Свой вариант...</option></select><div id="gearCustomCategoryDiv" class="custom-category-input"><input type="text" id="gearCustomCategory" placeholder="Введите свою категорию"></div><input type="number" id="gearWeight" placeholder="Вес" step="any" style="flex:1" aria-label="Вес предмета"><select id="weightUnit" style="flex:0.5" aria-label="Единица измерения веса"><option value="kg">кг</option><option value="g">г</option></select><input type="number" id="gearPrice" placeholder="Цена" step="any" style="flex:1" aria-label="Цена предмета"><select id="gearOwner" style="flex:1" aria-label="Владелец предмета"></select><label class="critical-label"><input type="checkbox" id="gearCritical" title="Критичное" aria-label="Критично важный предмет"><span class="critical-icon">🔥</span></label><button id="addGearBtn" class="add-btn">➕ Добавить</button></div><div id="gearList" class="items-list" role="list" aria-label="Список снаряжения"></div><div class="summary" id="gearSummary" aria-live="polite"></div></div>
+<div id="expenseBlock" class="card"><div class="card-title"><span>💰 Расходы</span></div><div class="filters-header" id="expenseFiltersHeader"><h3><span>🔍 Фильтры</span><span class="filter-badge" id="expenseFilterBadge">активны</span></h3><button class="toggle-filters" id="toggleExpenseFilters" aria-expanded="true" aria-controls="expenseFiltersContent">▼</button></div><div class="filters-content" id="expenseFiltersContent"><div class="filters-bar"><div class="filter-group"><label for="expenseCategoryFilter">Категория:</label><select id="expenseCategoryFilter" aria-label="Фильтр по категории расходов"><option value="all">Все</option></select></div><div class="filter-group"><label for="expensePayerFilter">Плательщик:</label><select id="expensePayerFilter" aria-label="Фильтр по плательщику"><option value="all">Все</option></select></div><div class="filter-group"><label for="expenseAmountFilter">Сумма:</label><select id="expenseAmountFilter" aria-label="Фильтр по сумме"><option value="all">Все</option><option value="small">До 1000₽</option><option value="medium">1000-5000₽</option><option value="large">Более 5000₽</option></select></div><div class="search-box"><input type="text" id="expenseSearch" placeholder="🔍 Умный поиск..." aria-label="Поиск расходов"></div></div></div><div class="form-row"><input type="text" id="expenseName" placeholder="Описание" style="flex:2" autocomplete="off" aria-required="true"><select id="expenseCategory" style="flex:1" aria-label="Категория расхода"><option value="Еда">🍖 Еда</option><option value="Транспорт">🚐 Транспорт</option><option value="Снаряжение">🎒 Снаряжение</option><option value="Развлечения">🎭 Развлечения</option><option value="Прочее">📦 Прочее</option><option value="__custom__">✨ Свой вариант...</option></select><div id="expenseCustomCategoryDiv" class="custom-category-input"><input type="text" id="expenseCustomCategory" placeholder="Введите свою категорию"></div><input type="number" id="expenseAmount" placeholder="Сумма" step="any" style="flex:1" aria-label="Сумма расхода"><select id="expensePaidBy" style="flex:1" aria-label="Кто оплатил"></select><button id="addExpenseBtn" class="add-btn">➕ Добавить</button></div><div id="expenseList" class="items-list" role="list" aria-label="Список расходов"></div><div class="summary" id="expenseTotal" aria-live="polite"></div><div class="debt-container"><div class="debt-card"><h4>💳 Потрачено (факт)</h4><div id="spentList"></div></div><div class="debt-card"><h4>💰 Баланс участников</h4><div id="balanceList"></div></div><div class="debt-card"><h4>🔄 Кому и сколько перевести</h4><div id="transferList"></div></div></div></div></div>
+<div id="chartsBlock" class="card"><div class="card-title">📊 Графики и статистика</div><div class="chart-header" id="weightChartHeader"><h4>📊 Нагрузка по участников</h4><button class="toggle-chart" id="toggleWeightChart" aria-expanded="true" aria-controls="weightChartContent">▼</button></div><div class="chart-content" id="weightChartContent"><div class="charts-container"><div class="chart-card"><canvas id="weightChartCanvas" role="img" aria-label="Диаграмма нагрузки по участников"></canvas></div><div class="stats-block"><h4>📋 Детальная нагрузка</h4><div id="weightStatsList"></div></div></div></div><div class="chart-header" id="expenseChartHeader"><h4>🥧 Расходы по категориям</h4><button class="toggle-chart" id="toggleExpenseChart" aria-expanded="true" aria-controls="expenseChartContent">▼</button></div><div class="chart-content" id="expenseChartContent"><div class="charts-container"><div class="chart-card"><canvas id="expenseChartCanvas" role="img" aria-label="Диаграмма расходов по категориям"></canvas></div><div class="stats-block"><h4>📋 Детальные расходы</h4><div id="expenseStatsList"></div></div></div></div></div>
+<div id="editModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-content"><h3 id="modalTitle">Редактирование</h3><div id="modalFields"></div><div class="modal-buttons"><button id="saveEditBtn">💾 Сохранить</button><button id="cancelEditBtn" class="btn-secondary">Отмена</button></div></div></div>
+<div id="inputModal" class="modal" role="dialog" aria-modal="true">
+<div class="modal-content" style="max-width: 400px;">
+<h3 id="inputModalTitle">Введите название</h3>
+<input type="text" id="inputModalField" placeholder="Название" style="width: 100%; padding: 0.75rem 1rem; margin-bottom: 1rem; border-radius: 16px; border: 1px solid var(--border-light); font-size: 1rem;">
+<div class="confirm-delete-actions">
+<button class="btn-cancel" id="inputModalCancel">Отмена</button>
+<button class="btn-confirm" id="inputModalConfirm">OK</button>
+</div>
+</div>
+</div>
+</div>
+<!-- ✅ ИНДИКАТОР ОФЛАЙН/ОНЛАЙН -->
+<div id="pwaStatus" class="pwa-status online">🟢 Онлайн</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function(){
+"use strict";
+let globalIdCounter = 1000;
+const generateId = () => ++globalIdCounter;
+const escapeHtml = (str) => str ? String(str).replace(/[&<>"']/g, m => ({
+'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[m])) : '';
+const debounce = (fn, delay) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); }; };
+const debouncedRecalcChecklist = debounce(() => {
+const content = document.getElementById('checklistContent');
+if (content && !content.classList.contains('collapsed')) { content.style.maxHeight = content.scrollHeight + 'px'; }
+}, 100);
+const Validation = {
+setError(el, msg) {
+el.classList.add('input-error');
+let hint = el.nextElementSibling;
+if (!hint || !hint.classList.contains('validation-hint')) {
+hint = document.createElement('div');
+hint.className = 'validation-hint';
+el.parentNode.insertBefore(hint, el.nextSibling);
+}
+hint.textContent = msg;
+hint.classList.add('show');
+},
+clearError(el) {
+el.classList.remove('input-error');
+const hint = el.nextElementSibling;
+if (hint && hint.classList.contains('validation-hint')) hint.classList.remove('show');
+},
+checkText(el, min=1, max=50, required=true) {
+const v = el.value.trim();
+if (required && v.length < min) { this.setError(el, 'Мин. 1 символ'); return false; }
+if (v.length > max) { this.setError(el, `Макс. ${max} симв.`); return false; }
+this.clearError(el); return true;
+},
+checkNumber(el, min=0) {
+const v = parseFloat(el.value);
+if (isNaN(v) || v < min) { this.setError(el, `Мин. ${min}`); return false; }
+this.clearError(el); return true;
+},
+checkCoords(latEl, lngEl) {
+const lat = parseFloat(latEl.value), lng = parseFloat(lngEl.value);
+if (isNaN(lat) || lat < -90 || lat > 90) { this.setError(latEl, '-90..90'); return false; }
+if (isNaN(lng) || lng < -180 || lng > 180) { this.setError(lngEl, '-180..180'); return false; }
+this.clearError(latEl); this.clearError(lngEl); return true;
+},
+isDuplicate(val, arr, current) {
+return arr.includes(val.trim()) && val.trim() !== current;
+}
+};
+function parseNumberSafe(input, min = 0) {
+const val = parseFloat(input);
+return (isNaN(val) || val < min) ? null : val;
+}
+function getChartColors(count) {
+const colors = [];
+const goldenAngle = 137.508;
+for (let i = 0; i < count; i++) {
+const hue = (i * goldenAngle) % 360;
+colors.push(`hsl(${hue.toFixed(1)}, 65%, 55%)`);
+}
+return colors;
+}
+const AppLogger = { logs: [], add(level, msg, data=null) { this.logs.push({ts: new Date().toISOString(), level, msg, data}); }, download() { if (!this.logs.length) return alert('Лог пуст'); const content = '=== ПОХОДНЫЙ ПЛАНИРОВЩИК PRO ===\n' + new Date().toLocaleString('ru') + '\n' + this.logs.map(l => '[' + l.ts + '] [' + l.level + '] ' + l.msg + ' ' + (l.data?JSON.stringify(l.data):'')).join('\n'); downloadFile(content, 'log_' + new Date().toISOString().slice(0,10) + '.txt', 'text/plain'); } };
+function showToast(msg, duration=3000) { const toast = document.createElement('div'); toast.className = 'toast'; toast.textContent = msg; document.body.appendChild(toast); setTimeout(() => toast.remove(), duration); AppLogger.add('UI', msg); }
+function downloadFile(content, filename, mime) { const blob = new Blob([content], {type: mime}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); showToast('📁 ' + filename + ' скачан'); }
+function showErrorModal(title, message, onConfirm, confirmText = 'Понятно', cancelText = '') { const overlay = document.createElement('div'); overlay.className = 'confirm-delete-overlay'; overlay.innerHTML = '<div class="confirm-delete-content"><div class="confirm-delete-icon">⚠️</div><div class="confirm-delete-title">' + escapeHtml(title) + '</div><div class="confirm-delete-message">' + escapeHtml(message) + '</div><div class="confirm-delete-actions">' + (cancelText ? '<button class="btn-cancel">' + escapeHtml(cancelText) + '</button>' : '') + '<button class="btn-confirm">' + escapeHtml(confirmText) + '</button></div></div>'; document.body.appendChild(overlay); const close = () => overlay.remove(); overlay.querySelector('.btn-confirm').onclick = () => { close(); if(onConfirm) onConfirm(); }; if(cancelText) overlay.querySelector('.btn-cancel').onclick = close; overlay.addEventListener('click', e => { if(e.target===overlay) close(); }); setTimeout(() => overlay.querySelector('.btn-confirm')?.focus(), 100); }
+function showInputModal(title, defaultValue = '', callback) { const modal = document.getElementById('inputModal'), titleEl = document.getElementById('inputModalTitle'), inputEl = document.getElementById('inputModalField'), confirmBtn = document.getElementById('inputModalConfirm'), cancelBtn = document.getElementById('inputModalCancel'); titleEl.textContent = title; inputEl.value = defaultValue; Validation.clearError(inputEl); const close = () => { modal.style.display = 'none'; inputEl.value = ''; }; const onConfirm = () => { if(!Validation.checkText(inputEl, 1, 40)) { inputEl.focus(); return; } callback(inputEl.value.trim()); close(); }; confirmBtn.onclick = onConfirm; cancelBtn.onclick = close; inputEl.onkeypress = (e) => { if(e.key==='Enter') onConfirm(); }; modal.style.display = 'flex'; setTimeout(() => { inputEl.focus(); inputEl.select(); }, 100); modal.addEventListener('click', (e) => { if(e.target===modal) close(); }, {once:true}); }
+const elements = {};
+const getEl = (id) => { const cached = elements[id]; if(cached && document.body.contains(cached)) return cached; const el = document.getElementById(id); if(el) elements[id] = el; return el; };
+const clearModalCache = () => { delete elements['editGearName']; delete elements['editGearCat']; delete elements['editGearCustom']; delete elements['editGearWeight']; delete elements['editWeightUnit']; delete elements['editGearPrice']; delete elements['editGearOwner']; delete elements['editGearCritical']; delete elements['editExpDesc']; delete elements['editExpCat']; delete elements['editExpCustom']; delete elements['editExpAmount']; delete elements['editExpPayer']; delete elements['editPartName']; };
+const DEFAULT_GEAR_CATEGORIES = ['Снаряжение', 'Еда', 'Кухня', 'Аптечка', 'Инструменты', 'Одежда', 'Прочее'];
+const DEFAULT_EXPENSE_CATEGORIES = ['Еда', 'Транспорт', 'Снаряжение', 'Развлечения', 'Прочее'];
+let state = { participants: [], gearItems: [], expenses: [], checklistStatus: {}, includeGearInDebts: false, gearCategories: new Set(DEFAULT_GEAR_CATEGORIES), expenseCategories: new Set(DEFAULT_EXPENSE_CATEGORIES), history: [], historyIndex: -1, MAX_HISTORY: 100, allTemplates: [], routePoints: [] };
+let mapState = { map: null, markerCluster: null, markers: [], routeLine: null, selectedPointId: null };
+let expenseChart, weightChart; let autoSaveTimer = null; const AUTO_SAVE_DELAY = 500;
+let unsavedChanges = false;
+window.addEventListener('beforeunload', (e) => {
+if (unsavedChanges && !document.body.classList.contains('view-mode')) {
+e.preventDefault();
+e.returnValue = '';
+}
+});
+function markUnsaved() { unsavedChanges = true; }
+function clearUnsaved() { unsavedChanges = false; }
+function syncGlobalIdCounter() { let maxId = globalIdCounter; state.gearItems.forEach(g => { if(g.id>maxId) maxId=g.id; }); state.expenses.forEach(e => { if(e.id>maxId) maxId=e.id; }); state.routePoints.forEach(p => { if(p.id>maxId) maxId=p.id; }); if(maxId>globalIdCounter) globalIdCounter=maxId; }
+function migrateCategories(savedState) {
+const newState = JSON.parse(JSON.stringify(savedState));
+if (newState.gearCategories) {
+const migrated = new Set();
+newState.gearCategories.forEach(cat => {
+if (DEFAULT_GEAR_CATEGORIES.includes(cat)) migrated.add(cat);
+else migrated.add('Снаряжение');
+});
+newState.gearCategories = Array.from(migrated);
+}
+if (newState.expenseCategories) {
+const migrated = new Set();
+newState.expenseCategories.forEach(cat => {
+if (DEFAULT_EXPENSE_CATEGORIES.includes(cat)) migrated.add(cat);
+else migrated.add('Прочее');
+});
+newState.expenseCategories = Array.from(migrated);
+}
+if (newState.gearItems) {
+newState.gearItems.forEach(g => {
+if (!DEFAULT_GEAR_CATEGORIES.includes(g.category)) g.category = 'Снаряжение';
+});
+}
+if (newState.expenses) {
+newState.expenses.forEach(e => {
+if (!DEFAULT_EXPENSE_CATEGORIES.includes(e.category)) e.category = 'Прочее';
+});
+}
+return newState;
+}
+function renderChecklist() { const items=getFilteredGearItems(); const cont=getEl('checklistContainer'); cont.innerHTML=items.length?'':'<div style="text-align:center;">Нет предметов</div>'; items.forEach(g=>{ const checked=state.checklistStatus[g.id]||false; const div=document.createElement('div'); div.className='checklist-item ' + (g.critical?'critical':'') + ' ' + (checked?'completed':''); div.innerHTML='<input type="checkbox" class="checklist-checkbox" data-id="' + g.id + '" ' + (checked?'checked':'') + '><div class="checklist-info"><span class="checklist-name">' + escapeHtml(g.name) + ' ' + (g.critical?'<span class="checklist-critical-badge">🔥</span>':'') + '</span><span class="checklist-category">📁 ' + escapeHtml(g.category) + '</span><span class="checklist-owner">👤 ' + escapeHtml(g.owner||'?') + '</span><span class="checklist-status ' + (checked?'status-ready':'status-missing') + '">' + (checked?'✓':'○') + '</span></div><div class="checklist-actions"><button class="edit-checklist-item" data-id="' + g.id + '">✏️</button></div>'; cont.appendChild(div); }); updateChecklistProgress(); debouncedRecalcChecklist(); }
+function updateChecklistProgress() { const items=getFilteredGearItems(), total=items.length, completed=items.filter(g=>state.checklistStatus[g.id]).length; const percent=total?Math.round(completed/total*100):0; getEl('progressBarFill').style.width=percent+'%'; getEl('progressBarFill').textContent=percent+'%'; getEl('progressStats').textContent='Готовность: ' + completed + ' из ' + total + ' предметов (' + percent + '%)'; }
+function updateTotals() { const totalWeight=state.gearItems.reduce((s,g)=>s+(g.weightUnit==='kg'?g.weight:g.weight/1000),0); const totalGear=state.gearItems.reduce((s,g)=>s+(g.price||0),0); const totalExp=state.expenses.reduce((s,e)=>s+e.amount,0); getEl('gearSummary').innerHTML='⚖️ Вес: ' + totalWeight.toFixed(2) + ' кг (' + state.gearItems.length + ' шт) | 💰 Снаряжение: ' + totalGear + ' ₽'; getEl('expenseTotal').innerHTML='💸 Расходы: ' + totalExp + ' ₽ | Всего: ' + (totalExp+totalGear) + ' ₽'; }
+function renderBalances() { const filteredExpenses=getFilteredExpenseItems(); const filteredGear=state.includeGearInDebts?getFilteredGearItems():[]; if(!state.participants.length) { getEl('spentList').innerHTML='<div class="debt-empty">Добавьте участников</div>'; getEl('balanceList').innerHTML='<div class="debt-empty">Нет данных</div>'; getEl('transferList').innerHTML='<div class="debt-empty">Нет данных</div>'; return; } const bal=new Map(); state.participants.forEach(p=>bal.set(p,0)); const spent=new Map(); state.participants.forEach(p=>spent.set(p,0)); filteredExpenses.forEach(e=>{ spent.set(e.paidBy,(spent.get(e.paidBy)||0)+e.amount); const share=e.amount/state.participants.length; bal.set(e.paidBy,bal.get(e.paidBy)+e.amount-share); state.participants.forEach(p=>{ if(p!==e.paidBy) bal.set(p,bal.get(p)-share); }); }); filteredGear.forEach(g=>{ if(g.price&&g.owner&&state.participants.includes(g.owner)) { spent.set(g.owner,(spent.get(g.owner)||0)+g.price); const share=g.price/state.participants.length; bal.set(g.owner,bal.get(g.owner)+g.price-share); state.participants.forEach(p=>{ if(p!==g.owner) bal.set(p,bal.get(p)-share); }); } }); const selectedPayer=getEl('expensePayerFilter').value; const isPayerFilterActive=selectedPayer!=='all'; let spentHtml='<ul class="debt-list">'; if(isPayerFilterActive) { const val=spent.get(selectedPayer)||0; spentHtml+='<li><span class="participant-name">' + escapeHtml(selectedPayer) + '</span><span class="spent-amount">' + val.toFixed(2) + ' ₽</span></li>'; } else { spent.forEach((v,k)=>{ if(v>0) spentHtml+='<li><span class="participant-name">' + escapeHtml(k) + '</span><span class="spent-amount">' + v.toFixed(2) + ' ₽</span></li>'; }); } spentHtml+='</ul>'; getEl('spentList').innerHTML=spentHtml||'<div class="debt-empty">Нет трат</div>'; let balanceHtml='<ul class="debt-list">'; if(isPayerFilterActive) { const val=bal.get(selectedPayer)||0; let cls=val>1?'balance-positive':(val<-1?'balance-negative':'balance-neutral'); let txt=val>1?'+' + val.toFixed(2) + ' ₽ (получит)':(val<-1?val.toFixed(2) + ' ₽ (должен)':'0 ₽'); balanceHtml+='<li><span class="participant-name">' + escapeHtml(selectedPayer) + '</span><span class="' + cls + '">' + txt + '</span></li>'; } else { bal.forEach((v,k)=>{ if(Math.abs(v)>0.01) { let cls=v>1?'balance-positive':(v<-1?'balance-negative':'balance-neutral'); let txt=v>1?'+' + v.toFixed(2) + ' ₽ (получит)':(v<-1?v.toFixed(2) + ' ₽ (должен)':'0 ₽'); balanceHtml+='<li><span class="participant-name">' + escapeHtml(k) + '</span><span class="' + cls + '">' + txt + '</span></li>'; } }); } balanceHtml+='</ul>'; getEl('balanceList').innerHTML=balanceHtml||'<div class="debt-empty">Нет данных</div>'; let debtors=[], creditors=[]; bal.forEach((v,k)=>{ if(v>1) creditors.push({name:k, amount:v}); else if(v<-1) debtors.push({name:k, amount:-v}); }); let transfers=[]; debtors.forEach(d=>creditors.forEach(c=>{ if(d.amount>0.01&&c.amount>0.01) { let pay=Math.min(d.amount, c.amount); transfers.push({from:d.name, to:c.name, amount:pay}); d.amount-=pay; c.amount-=pay; } })); let transferHtml=transfers.length?'<ul class="debt-list">'+transfers.map(t=>'<li><div class="transfer-from-to"><strong>' + escapeHtml(t.from) + '</strong><span class="transfer-arrow">→</span><strong>' + escapeHtml(t.to) + '</strong></div><span class="transfer-amount">' + t.amount.toFixed(2) + ' ₽</span></li>').join('')+'</ul>' : '<div class="debt-empty">✅ Всё урегулировано!</div>'; getEl('transferList').innerHTML=transferHtml; }
+function updateCategoryFilters() { getEl('gearCategoryFilter').innerHTML='<option value="all">Все</option>'+DEFAULT_GEAR_CATEGORIES.map(c=>'<option>' + escapeHtml(c) + '</option>').join(''); getEl('expenseCategoryFilter').innerHTML='<option value="all">Все</option>'+DEFAULT_EXPENSE_CATEGORIES.map(c=>'<option>' + escapeHtml(c) + '</option>').join(''); }
+function updateFilterBadges() { const gearActive=getEl('gearCategoryFilter').value!=='all'||getEl('gearOwnerFilter').value!=='all'||getEl('gearWeightFilter').value!=='all'||getEl('gearSearch').value!==''; const badgeGear=getEl('gearFilterBadge'); badgeGear.textContent=gearActive?'активны ✓':'не активны'; badgeGear.className='filter-badge'+(gearActive?'':' inactive'); const expActive=getEl('expenseCategoryFilter').value!=='all'||getEl('expensePayerFilter').value!=='all'||getEl('expenseAmountFilter').value!=='all'||getEl('expenseSearch').value!==''; const badgeExp=getEl('expenseFilterBadge'); badgeExp.textContent=expActive?'активны ✓':'не активны'; badgeExp.className='filter-badge'+(expActive?'':' inactive'); }
+function updateCharts() {
+try {
+const catMap={}; state.expenses.forEach(e=>catMap[e.category]=(catMap[e.category]||0)+e.amount);
+const catLabels=Object.keys(catMap), catData=Object.values(catMap);
+const dynamicColors = getChartColors(catLabels.length);
+const expenseCanvas = getEl('expenseChartCanvas');
+if (expenseCanvas) {
+if (!expenseChart) {
+expenseChart = new Chart(expenseCanvas, {
+type: 'pie',
+data: {
+labels: catLabels,
+datasets: [{ data: catData, backgroundColor: dynamicColors }]
+},
+options: { responsive: true, maintainAspectRatio: false }
+});
+} else {
+expenseChart.data.labels = catLabels;
+expenseChart.data.datasets[0].data = catData;
+expenseChart.data.datasets[0].backgroundColor = dynamicColors;
+expenseChart.update();
+}
+}
+const weightMap={};
+state.gearItems.forEach(g=>{ if(g.owner) weightMap[g.owner]=(weightMap[g.owner]||0)+(g.weightUnit==='kg'?g.weight:g.weight/1000); });
+const wLabels=Object.keys(weightMap), wData=Object.values(weightMap);
+const weightCanvas = getEl('weightChartCanvas');
+if (weightCanvas) {
+if (!weightChart) {
+weightChart = new Chart(weightCanvas, {
+type: 'bar',
+data: {
+labels: wLabels,
+datasets: [{ label: 'Вес (кг)', data: wData, backgroundColor: '#2b6e3c' }]
+},
+options: { responsive: true, maintainAspectRatio: false }
+});
+} else {
+weightChart.data.labels = wLabels;
+weightChart.data.datasets[0].data = wData;
+weightChart.update();
+}
+}
+getEl('weightStatsList').innerHTML = '<ul>' + Object.entries(weightMap).map(([p,w]) => '<li>' + escapeHtml(p) + ': ' + w.toFixed(2) + ' кг</li>').join('') + '</ul>';
+getEl('expenseStatsList').innerHTML = '<ul>' + Object.entries(catMap).map(([c,s]) => '<li>' + escapeHtml(c) + ': ' + s.toFixed(2) + ' ₽</li>').join('') + '</ul>';
+} catch(e) { console.error('updateCharts error', e); }
+}
+function showConfirmDeleteDialog(title, message, onConfirm) { const overlay=document.createElement('div'); overlay.className='confirm-delete-overlay'; overlay.innerHTML='<div class="confirm-delete-content"><div class="confirm-delete-icon">⚠️</div><div class="confirm-delete-title">' + escapeHtml(title) + '</div><div class="confirm-delete-message">' + escapeHtml(message) + '</div><div class="confirm-delete-actions"><button class="btn-cancel">Отмена</button><button class="btn-confirm">Удалить</button></div></div>'; document.body.appendChild(overlay); const close=()=>overlay.remove(); overlay.querySelector('.btn-cancel').onclick=close; overlay.querySelector('.btn-confirm').onclick=()=>{ onConfirm(); close(); }; overlay.addEventListener('click', e=>{ if(e.target===overlay) close(); }); }
+let activeContextMenu = null;
+function closeContextMenu() { if(activeContextMenu) { activeContextMenu.remove(); activeContextMenu=null; } document.removeEventListener('click', closeContextMenu, true); }
+function createContextMenu(x, y, items) { closeContextMenu(); const menu=document.createElement('div'); menu.className='context-menu'; menu.style.left=Math.max(10, Math.min(x, window.innerWidth-220))+'px'; menu.style.top=Math.max(10, Math.min(y, window.innerHeight-150))+'px'; items.forEach(item=>{ const div=document.createElement('div'); div.className='context-menu-item'; div.innerHTML=item.html; div.onclick=e=>{ e.stopPropagation(); item.action(); closeContextMenu(); }; menu.appendChild(div); }); document.body.appendChild(menu); activeContextMenu=menu; setTimeout(()=>document.addEventListener('click', closeContextMenu, true), 0); return menu; }
+function setupDelegation() { getEl('participantsList').addEventListener('click', e=>{ const btn=e.target.closest('button'); if(!btn) return; const name=btn.dataset.name; if(btn.classList.contains('edit-participant')) openEditParticipant(name); else if(btn.classList.contains('remove-participant')) showConfirmDeleteDialog('Удалить участника?', 'Участник «' + name + '» будет удалён, а его снаряжение и расходы потеряют владельца.', ()=>{ saveToHistory(); state.participants=state.participants.filter(p=>p!==name); state.gearItems=state.gearItems.filter(g=>g.owner!==name); state.expenses=state.expenses.filter(e=>e.paidBy!==name); markUnsaved(); refreshAll(); saveToHistory(); showToast('👤 Участник «' + name + '» удалён'); }); }); getEl('participantsList').addEventListener('contextmenu', e=>{ const badge=e.target.closest('.participant-badge'); if(!badge) return; e.preventDefault(); createContextMenu(e.clientX, e.clientY, [{html:'✏️ Редактировать имя', action:()=>openEditParticipant(badge.dataset.name)}, {html:'<span style="color:#b91c1c">🗑️ Удалить участника</span>', action:()=>showConfirmDeleteDialog('Удалить участника «' + badge.dataset.name + '»?', 'Все снаряжение и расходы этого участника потеряют владельца.', ()=>{ saveToHistory(); state.participants=state.participants.filter(p=>p!==badge.dataset.name); state.gearItems=state.gearItems.filter(g=>g.owner!==badge.dataset.name); state.expenses=state.expenses.filter(e=>e.paidBy!==badge.dataset.name); markUnsaved(); refreshAll(); saveToHistory(); showToast('👤 Участник удалён'); })}]); }); getEl('gearList').addEventListener('click', e=>{ const btn=e.target.closest('button'); if(!btn) return; const id=parseInt(btn.dataset.id); if(btn.classList.contains('edit-btn')) { e.stopPropagation(); openEditGear(id); } else if(btn.classList.contains('delete-btn')) { const g=state.gearItems.find(x=>x.id===id); if(g) showConfirmDeleteDialog('Удалить «' + g.name + '»?', 'Это действие нельзя отменить.', ()=>{ saveToHistory(); state.gearItems=state.gearItems.filter(x=>x.id!==id); delete state.checklistStatus[id]; markUnsaved(); refreshAll(); saveToHistory(); showToast('🗑️ «' + g.name + '» удалено'); }); } }); getEl('gearList').addEventListener('contextmenu', e=>{ const item=e.target.closest('.item-entry'); if(!item) return; e.preventDefault(); const gear=state.gearItems.find(g=>g.id==item.dataset.id); if(!gear) return; createContextMenu(e.clientX, e.clientY, [{html:'✏️ Редактировать', action:()=>openEditGear(gear.id)}, {html:'<span style="color:#b91c1c">🗑️ Удалить</span>', action:()=>showConfirmDeleteDialog('Удалить «' + gear.name + '»?', '', ()=>{ saveToHistory(); state.gearItems=state.gearItems.filter(x=>x.id!==gear.id); delete state.checklistStatus[gear.id]; markUnsaved(); refreshAll(); saveToHistory(); showToast('🗑️ Удалено'); })}, {html:'ℹ️ ' + escapeHtml(gear.name) + '<br>' + escapeHtml(gear.category) + ' · ' + gear.weight + gear.weightUnit, action:()=>{}}]); }); getEl('expenseList').addEventListener('click', e=>{ const btn=e.target.closest('button'); if(!btn) return; const id=parseInt(btn.dataset.id); if(btn.classList.contains('edit-expense-btn')) { e.stopPropagation(); openEditExpense(id); } else if(btn.classList.contains('delete-expense-btn')) { const exp=state.expenses.find(x=>x.id===id); if(exp) showConfirmDeleteDialog('Удалить «' + exp.desc + '»?', 'Это действие нельзя отменить.', ()=>{ saveToHistory(); state.expenses=state.expenses.filter(x=>x.id!==id); markUnsaved(); refreshAll(); saveToHistory(); showToast('🗑️ «' + exp.desc + '» удалено'); }); } }); getEl('expenseList').addEventListener('contextmenu', e=>{ const item=e.target.closest('.item-entry'); if(!item) return; e.preventDefault(); const expense=state.expenses.find(ex=>ex.id==item.dataset.id); if(!expense) return; createContextMenu(e.clientX, e.clientY, [{html:'✏️ Редактировать', action:()=>openEditExpense(expense.id)}, {html:'<span style="color:#b91c1c">🗑️ Удалить</span>', action:()=>showConfirmDeleteDialog('Удалить «' + expense.desc + '»?', '', ()=>{ saveToHistory(); state.expenses=state.expenses.filter(x=>x.id!==expense.id); markUnsaved(); refreshAll(); saveToHistory(); showToast('🗑️ Удалено'); })}, {html:'ℹ️ ' + escapeHtml(expense.desc) + '<br>' + escapeHtml(expense.category) + ' · ' + expense.amount + '₽', action:()=>{}}]); }); getEl('checklistContainer').addEventListener('click', e=>{ const checkbox=e.target.closest('.checklist-checkbox'); if(checkbox) { e.stopPropagation(); const id=parseInt(checkbox.dataset.id); state.checklistStatus[id]=checkbox.checked; markUnsaved(); renderChecklist(); autoSave(); saveToHistory(); return; } const btn=e.target.closest('.edit-checklist-item'); if(btn) { e.stopPropagation(); openEditGear(parseInt(btn.dataset.id)); } }); getEl('checklistContainer').addEventListener('contextmenu', e=>{ const item=e.target.closest('.checklist-item'); if(!item) return; e.preventDefault(); const checkbox=item.querySelector('.checklist-checkbox'); if(!checkbox) return; const gear=state.gearItems.find(g=>g.id==checkbox.dataset.id); if(gear) createContextMenu(e.clientX, e.clientY, [{html:'✏️ Редактировать', action:()=>openEditGear(gear.id)}, {html:'<span style="color:#b91c1c">🗑️ Удалить</span>', action:()=>showConfirmDeleteDialog('Удалить «' + gear.name + '»?', '', ()=>{ saveToHistory(); state.gearItems=state.gearItems.filter(x=>x.id!==gear.id); delete state.checklistStatus[gear.id]; markUnsaved(); refreshAll(); saveToHistory(); showToast('🗑️ Удалено'); })}, {html:'ℹ️ ' + escapeHtml(gear.name) + '<br>' + escapeHtml(gear.category) + ' · ' + gear.weight + gear.weightUnit, action:()=>{}}]); }); const pointsContainer=getEl('pointsList'); if(pointsContainer) { pointsContainer.addEventListener('click', e=>{ const editBtn=e.target.closest('.edit-point'); const deleteBtn=e.target.closest('.delete-point'); if(editBtn) { e.stopPropagation(); const item=editBtn.closest('.point-item'); if(item&&item.dataset.pointId) { const point=state.routePoints.find(p=>p.id==item.dataset.pointId); if(point) showEditPointDialog(point); } return; } if(deleteBtn) { e.stopPropagation(); const item=deleteBtn.closest('.point-item'); if(item&&item.dataset.pointId) deletePoint(item.dataset.pointId); return; } const item=e.target.closest('.point-item'); if(item&&item.dataset.pointId) highlightPointOnMap(item.dataset.pointId); }); pointsContainer.addEventListener('contextmenu', e=>{ const item=e.target.closest('.point-item'); if(!item||!item.dataset.pointId) return; e.preventDefault(); const point=state.routePoints.find(p=>p.id==item.dataset.pointId); if(point) createContextMenu(e.clientX, e.clientY, [{html:'✏️ Редактировать', action:()=>showEditPointDialog(point)}, {html:'<span style="color:#b91c1c">🗑️ Удалить</span>', action:()=>deletePoint(point.id)}, {html:'🎯 Центрировать карту', action:()=>{ if(mapState.map) mapState.map.setView([point.lat, point.lng], 14); }}]); }); } getEl('gearCategory').addEventListener('contextmenu', e=>{ e.preventDefault(); if(e.target.tagName==='SELECT'&&e.target.value&&e.target.value!=='__custom__') createContextMenu(e.clientX, e.clientY, [{html:'🗑️ Удалить категорию', action:()=>showConfirmDeleteDialog('Удалить категорию «' + e.target.value + '»?', 'Все предметы этой категории будут перемещены в «Прочее».', ()=>{ state.gearCategories.delete(e.target.value); state.gearItems.forEach(g=>{ if(g.category===e.target.value) g.category='Прочее'; }); markUnsaved(); updateCategorySelects(); refreshAll(); saveToHistory(); showToast('🗑️ Категория удалена'); })}]); }); getEl('expenseCategory').addEventListener('contextmenu', e=>{ e.preventDefault(); if(e.target.tagName==='SELECT'&&e.target.value&&e.target.value!=='__custom__') createContextMenu(e.clientX, e.clientY, [{html:'🗑️ Удалить категорию', action:()=>showConfirmDeleteDialog('Удалить категорию «' + e.target.value + '»?', 'Все предметы этой категории будут перемещены в «Прочее».', ()=>{ state.expenseCategories.delete(e.target.value); state.expenses.forEach(exp=>{ if(exp.category===e.target.value) exp.category='Прочее'; }); markUnsaved(); updateCategorySelects(); refreshAll(); saveToHistory(); showToast('🗑️ Категория удалена'); })}]); }); }
+function isValidCoord(val, isLat=true) { return Number.isFinite(val)&&val>=(isLat?-90:-180)&&val<=(isLat?90:180); }
+function showAddPointDialog(lat, lng) { const overlay=document.createElement('div'); overlay.className='map-modal-overlay'; overlay.innerHTML='<div class="map-modal-content"><h3>📍 Новая точка</h3><div class="map-modal-field"><label>Название</label><input type="text" id="modalPointName" placeholder="Введите название" autofocus></div><div class="map-modal-field"><label>Тип</label><select id="modalPointType"><option value="camp">🏕️ Стоянка</option><option value="water">💧 Вода</option><option value="shop">🛒 Магазин</option><option value="sight">🏛️ Достопримечательность</option><option value="__custom__">✨ Свой вариант...</option></select><div id="modalCustomTypeDiv" style="display:none; margin-top:5px;"><input type="text" id="modalPointCustomType" placeholder="Введите свой тип точки"></div></div><div class="map-modal-field"><label>Координаты</label><div class="coord-row"><input type="text" id="modalPointLat" value="' + lat.toFixed(6) + '" placeholder="Широта"><input type="text" id="modalPointLng" value="' + lng.toFixed(6) + '" placeholder="Долгота"></div><div class="error-text" id="modalCoordError">Некорректные координаты</div></div><div class="map-modal-actions"><button class="btn-secondary" id="modalCancelBtn">Отмена</button><button id="modalSaveBtn">✅ Добавить</button></div></div>'; document.body.appendChild(overlay); const nameInput=overlay.querySelector('#modalPointName'), typeSelect=overlay.querySelector('#modalPointType'), customDiv=overlay.querySelector('#modalCustomTypeDiv'), customInput=overlay.querySelector('#modalPointCustomType'), latInput=overlay.querySelector('#modalPointLat'), lngInput=overlay.querySelector('#modalPointLng'), errorDiv=overlay.querySelector('#modalCoordError'); typeSelect.onchange=()=>{ customDiv.style.display=typeSelect.value==='__custom__'?'block':'none'; }; const close=()=>overlay.remove(); const save=()=>{ const name=nameInput.value.trim(); if(!Validation.checkText(nameInput, 1, 50)) return; let type=typeSelect.value; if(type==='__custom__') { type=customInput.value.trim(); if(!Validation.checkText(customInput, 1, 30)) return; } const latVal=parseFloat(latInput.value), lngVal=parseFloat(lngInput.value); if(!Validation.checkCoords(latInput, lngInput)) { errorDiv.style.display='block'; return; } errorDiv.style.display='none'; if(addPoint(name, latVal, lngVal, type)) close(); }; overlay.querySelector('#modalSaveBtn').onclick=save; overlay.querySelector('#modalCancelBtn').onclick=close; nameInput.addEventListener('keypress', e=>{ if(e.key==='Enter') save(); }); overlay.addEventListener('click', e=>{ if(e.target===overlay) close(); }); latInput.addEventListener('input', ()=>{ errorDiv.style.display='none'; Validation.clearError(latInput); }); lngInput.addEventListener('input', ()=>{ errorDiv.style.display='none'; Validation.clearError(lngInput); }); }
+function showEditPointDialog(point) { const overlay=document.createElement('div'); overlay.className='map-modal-overlay'; overlay.innerHTML='<div class="map-modal-content"><h3>✏️ Редактировать точку</h3><div class="map-modal-field"><label>Название</label><input type="text" id="modalPointName" value="' + escapeHtml(point.name) + '" placeholder="Название"></div><div class="map-modal-field"><label>Тип</label><select id="modalPointType"><option value="camp" ' + (point.type==='camp'?'selected':'') + '>🏕️ Стоянка</option><option value="water" ' + (point.type==='water'?'selected':'') + '>💧 Вода</option><option value="shop" ' + (point.type==='shop'?'selected':'') + '>🛒 Магазин</option><option value="sight" ' + (point.type==='sight'?'selected':'') + '>🏛️ Достопримечательность</option><option value="__custom__" ' + (!['camp','water','shop','sight'].includes(point.type)?'selected':'') + '>✨ Свой вариант...</option></select><div id="modalCustomTypeDiv" style="display:' + (!['camp','water','shop','sight'].includes(point.type)?'block':'none') + '; margin-top:5px;"><input type="text" id="modalPointCustomType" value="' + (!['camp','water','shop','sight'].includes(point.type)?escapeHtml(point.type):'') + '" placeholder="Введите свой тип точки"></div></div><div class="map-modal-field"><label>Координаты</label><div class="coord-row"><input type="text" id="modalPointLat" value="' + point.lat + '" placeholder="Широта"><input type="text" id="modalPointLng" value="' + point.lng + '" placeholder="Долгота"></div><div class="error-text" id="modalCoordError">Некорректные координаты</div></div><div class="map-modal-actions"><button class="btn-secondary" id="modalCancelBtn">Отмена</button><button id="modalSaveBtn">💾 Сохранить</button></div></div>'; document.body.appendChild(overlay); const nameInput=overlay.querySelector('#modalPointName'), typeSelect=overlay.querySelector('#modalPointType'), customDiv=overlay.querySelector('#modalCustomTypeDiv'), customInput=overlay.querySelector('#modalPointCustomType'), latInput=overlay.querySelector('#modalPointLat'), lngInput=overlay.querySelector('#modalPointLng'), errorDiv=overlay.querySelector('#modalCoordError'); typeSelect.onchange=()=>{ customDiv.style.display=typeSelect.value==='__custom__'?'block':'none'; }; const close=()=>overlay.remove(); const save=()=>{ const name=nameInput.value.trim(); if(!Validation.checkText(nameInput, 1, 50)) return; let type=typeSelect.value; if(type==='__custom__') { type=customInput.value.trim(); if(!Validation.checkText(customInput, 1, 30)) return; } const latVal=parseFloat(latInput.value), lngVal=parseFloat(lngInput.value); if(!Validation.checkCoords(latInput, lngInput)) { errorDiv.style.display='block'; return; } errorDiv.style.display='none'; saveToHistory(); point.name=name; point.type=type; point.lat=latVal; point.lng=lngVal; updatePointsList(); updateMapPoints(); autoSave(); saveToHistory(); showToast('✏️ Точка обновлена'); close(); }; overlay.querySelector('#modalSaveBtn').onclick=save; overlay.querySelector('#modalCancelBtn').onclick=close; nameInput.addEventListener('keypress', e=>{ if(e.key==='Enter') save(); }); overlay.addEventListener('click', e=>{ if(e.target===overlay) close(); }); latInput.addEventListener('input', ()=>{ errorDiv.style.display='none'; Validation.clearError(latInput); }); lngInput.addEventListener('input', ()=>{ errorDiv.style.display='none'; Validation.clearError(lngInput); }); }
+function initMap() {
+if(mapState.map) return;
+const mapElement = document.getElementById('map');
+if(!mapElement) { console.error('❌ Элемент карты #map не найден!'); return; }
+if(typeof L === 'undefined') { console.error('❌ Leaflet не загружен!'); showToast('⚠️ Ошибка загрузки карты'); return; }
+try {
+mapState.map = L.map('map').setView([55.751244, 37.618423], 10);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution:'&copy; OSM & CartoDB', maxZoom: 19 }).addTo(mapState.map);
+mapState.map.on('dblclick', e=>{ showAddPointDialog(e.latlng.lat, e.latlng.lng); });
+mapState.map.on('contextmenu', e=>{
+L.DomEvent.stopPropagation(e);
+createContextMenu(e.originalEvent.clientX, e.originalEvent.clientY, [ {html:'➕ Добавить точку здесь', action:()=>showAddPointDialog(e.latlng.lat, e.latlng.lng)} ]);
+});
+console.log('✅ Карта инициализирована');
+updateMapPoints();
+} catch(e) { console.error('❌ Ошибка инициализации карты:', e); showToast('⚠️ Ошибка карты: ' + e.message); }
+}
+function updateMapPoints() { if(!mapState.map) return; if(mapState.markerCluster) mapState.map.removeLayer(mapState.markerCluster); const markers=[]; state.routePoints.forEach(p=>{ if(!isValidCoord(p.lat, true)||!isValidCoord(p.lng, false)) return; let emoji='📍'; if(p.type==='camp') emoji='🏕️'; else if(p.type==='water') emoji='💧'; else if(p.type==='shop') emoji='🛒'; else if(p.type==='sight') emoji='🏛️'; const icon=L.divIcon({html:'<div style="font-size:24px; line-height:1; text-shadow: 0 0 3px white, 0 0 3px white, 0 0 3px white; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); border: 3px solid ' + (mapState.selectedPointId===Number(p.id)?'#22c55e':'#2b6e3c') + '; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5); backdrop-filter: blur(2px);">' + emoji + '</div>', iconSize:[40,40], className:'custom-marker-icon'}); const marker=L.marker([p.lat, p.lng], {icon, draggable:true});
+marker.bindPopup('<b>' + escapeHtml(p.name) + '</b><br>' + escapeHtml(p.type) + '<br>' + p.lat.toFixed(6) + ', ' + p.lng.toFixed(6));
+marker.bindTooltip(escapeHtml(p.name), {permanent:true, direction:'bottom', offset:[0,10], className:'point-label'});
+marker.on('dragend', ()=>{ const pos=marker.getLatLng(); updatePointPosition(p.id, pos.lat, pos.lng); });
+marker.on('click', ()=>highlightPointOnMap(p.id));
+marker.on('contextmenu', e=>{
+L.DomEvent.stopPropagation(e);
+createContextMenu(e.originalEvent.clientX, e.originalEvent.clientY, [ {html:'✏️ Редактировать', action:()=>showEditPointDialog(p)}, {html:'<span style="color:#b91c1c">🗑️ Удалить</span>', action:()=>deletePoint(p.id)}, {html:'🎯 Центрировать карту', action:()=>{ if(mapState.map) mapState.map.setView([p.lat, p.lng], 14); }} ]);
+});
+markers.push(marker); }); mapState.markerCluster=L.markerClusterGroup(); mapState.markerCluster.addLayers(markers); mapState.map.addLayer(mapState.markerCluster); if(mapState.routeLine) mapState.map.removeLayer(mapState.routeLine); const latlngs=state.routePoints.filter(p=>isValidCoord(p.lat,true)&&isValidCoord(p.lng,false)).map(p=>[p.lat,p.lng]); if(latlngs.length>1) mapState.routeLine=L.polyline(latlngs, {color:'#2b6e3c'}).addTo(mapState.map); fitMapToPoints(); }
+function fitMapToPoints() { const pts=state.routePoints.filter(p=>isValidCoord(p.lat,true)&&isValidCoord(p.lng,false)); if(pts.length===0) mapState.map.setView([55.751244,37.618423],10); else if(pts.length===1) mapState.map.setView([pts[0].lat, pts[0].lng], 12); else mapState.map.fitBounds(L.latLngBounds(pts.map(p=>[p.lat,p.lng])), {padding:[30,30]}); }
+function highlightPointOnMap(id) { mapState.selectedPointId=Number(id); updateMapPoints(); updatePointsList(); }
+function updatePointsList() { const cont=getEl('pointsList'); if(!cont) return; cont.innerHTML=''; if(!state.routePoints.length) { cont.innerHTML='<div style="text-align:center; color:#6b7280; padding:1rem;">Нет точек маршрута</div>'; return; } state.routePoints.forEach(p=>{ const div=document.createElement('div'); div.className='point-item'+(mapState.selectedPointId===Number(p.id)?' selected':''); div.dataset.pointId=p.id; let typeClass='custom', emoji='📍'; if(p.type==='camp') { typeClass='camp'; emoji='🏕️'; } else if(p.type==='water') { typeClass='water'; emoji='💧'; } else if(p.type==='shop') { typeClass='shop'; emoji='🛒'; } else if(p.type==='sight') { typeClass='sight'; emoji='🏛️'; } div.innerHTML='<div class="point-info"><span class="point-name">' + emoji + ' ' + escapeHtml(p.name) + '</span><span class="point-coords">' + p.lat.toFixed(6) + ', ' + p.lng.toFixed(6) + '</span><span class="point-type ' + typeClass + '">' + escapeHtml(p.type) + '</span></div><div class="point-actions"><button class="edit-point">✏️</button><button class="delete-point">🗑️</button></div>'; cont.appendChild(div); }); }
+function updatePointPosition(id, lat, lng) { const p=state.routePoints.find(x=>x.id===id); if(p) { saveToHistory(); p.lat=lat; p.lng=lng; updateMapPoints(); updatePointsList(); autoSave(); saveToHistory(); } }
+function deletePoint(id) { const p=state.routePoints.find(x=>x.id==id); if(p) { showConfirmDeleteDialog('Удалить точку «' + p.name + '»?', 'Это действие нельзя отменить. Точка будет удалена с карты и из списка.', ()=>{ saveToHistory(); state.routePoints=state.routePoints.filter(x=>x.id!=id); if(mapState.selectedPointId==id) mapState.selectedPointId=null; updatePointsList(); updateMapPoints(); autoSave(); saveToHistory(); showToast('🗑️ Точка «' + p.name + '» удалена'); }); } }
+function addPoint(name, lat, lng, type) { if(!name||!isValidCoord(lat, true)||!isValidCoord(lng, false)) { showErrorModal('⚠️ Ошибка', 'Некорректные координаты или название', null, 'OK'); return false; } saveToHistory(); const newId=generateId(); state.routePoints.push({id:newId, name:name.trim(), lat, lng, type:type.trim()}); updatePointsList(); updateMapPoints(); autoSave(); saveToHistory(); showToast('📍 Точка «' + name + '» добавлена'); return true; }
+function openEditParticipant(oldName) { const modal=getEl('editModal'); getEl('modalTitle').textContent='✏️ Участник'; getEl('modalFields').innerHTML='<input id="editPartName" value="' + escapeHtml(oldName) + '">'; clearModalCache(); modal.style.display='flex'; modal.dataset.editType='participant'; modal.dataset.editId=oldName; }
+function openEditGear(id) { const gear=state.gearItems.find(g=>g.id===id); if(!gear) return; const modal=getEl('editModal'); getEl('modalTitle').textContent='✏️ Снаряжение'; let opts=DEFAULT_GEAR_CATEGORIES.map(c=>'<option value="' + escapeHtml(c) + '" ' + (gear.category===c?'selected':'') + '>' + escapeHtml(c) + '</option>').join('') + '<option value="__custom__">✨ Свой...</option>'; getEl('modalFields').innerHTML='<input id="editGearName" value="' + escapeHtml(gear.name) + '" placeholder="Название"><select id="editGearCat">' + opts + '</select><div id="editGearCustomDiv" style="display:none"><input id="editGearCustom" placeholder="Своя категория"></div><input id="editGearWeight" value="' + gear.weight + '" step="any" placeholder="Вес"><select id="editWeightUnit"><option value="kg" ' + (gear.weightUnit==='kg'?'selected':'') + '>кг</option><option value="g" ' + (gear.weightUnit==='g'?'selected':'') + '>г</option></select><input id="editGearPrice" value="' + (gear.price||0) + '" step="any" placeholder="Цена"><select id="editGearOwner">' + state.participants.map(p=>'<option ' + (gear.owner===p?'selected':'') + '>' + escapeHtml(p) + '</option>').join('') + '</select><label class="critical-label"><input type="checkbox" id="editGearCritical" ' + (gear.critical?'checked':'') + '><span class="critical-icon">🔥</span></label>'; clearModalCache(); modal.style.display='flex'; modal.dataset.editType='gear'; modal.dataset.editId=id; setTimeout(()=>{ const catSel=document.getElementById('editGearCat'), customDiv=document.getElementById('editGearCustomDiv'); if(catSel&&customDiv) { catSel.onchange=()=>customDiv.style.display=catSel.value==='__custom__'?'block':'none'; if(catSel.value==='__custom__') customDiv.style.display='block'; } }, 0); }
+function openEditExpense(id) { const exp=state.expenses.find(e=>e.id===id); if(!exp) return; const modal=getEl('editModal'); getEl('modalTitle').textContent='✏️ Расход'; let opts=DEFAULT_EXPENSE_CATEGORIES.map(c=>'<option value="' + escapeHtml(c) + '" ' + (exp.category===c?'selected':'') + '>' + escapeHtml(c) + '</option>').join('') + '<option value="__custom__">✨ Свой...</option>'; getEl('modalFields').innerHTML='<input id="editExpDesc" value="' + escapeHtml(exp.desc) + '" placeholder="Описание"><select id="editExpCat">' + opts + '</select><div id="editExpCustomDiv" style="display:none"><input id="editExpCustom" placeholder="Своя категория"></div><input id="editExpAmount" value="' + exp.amount + '" step="any" placeholder="Сумма"><select id="editExpPayer">' + state.participants.map(p=>'<option ' + (exp.paidBy===p?'selected':'') + '>' + escapeHtml(p) + '</option>').join('') + '</select>'; clearModalCache(); modal.style.display='flex'; modal.dataset.editType='expense'; modal.dataset.editId=id; setTimeout(()=>{ const catSel=document.getElementById('editExpCat'), customDiv=document.getElementById('editExpCustomDiv'); if(catSel&&customDiv) { catSel.onchange=()=>customDiv.style.display=catSel.value==='__custom__'?'block':'none'; if(catSel.value==='__custom__') customDiv.style.display='block'; } }, 0); }
+function saveEdit() { const modal=getEl('editModal'); const type=modal.dataset.editType; const id=type==='participant'?modal.dataset.editId:parseInt(modal.dataset.editId); if(type==='participant') { const newName=document.getElementById('editPartName').value.trim(); if(!Validation.checkText(document.getElementById('editPartName'), 1, 30)) return; if(Validation.isDuplicate(newName, state.participants, id)) { showErrorModal('⚠️ Ошибка', 'Участник «' + newName + '» уже добавлен', null, 'Понятно'); return; } saveToHistory(); state.participants=state.participants.map(p=>p===id?newName:p); state.gearItems=state.gearItems.map(g=>g.owner===id?{...g, owner:newName}:g); state.expenses=state.expenses.map(e=>e.paidBy===id?{...e, paidBy:newName}:e); } else if(type==='gear') { const idx=state.gearItems.findIndex(g=>g.id===id); if(idx===-1) return; let cat=document.getElementById('editGearCat').value; if(cat==='__custom__') { cat=document.getElementById('editGearCustom').value.trim(); if(!Validation.checkText(document.getElementById('editGearCustom'), 1, 30)) return; state.gearCategories.add(cat); updateCategorySelects(); } saveToHistory(); state.gearItems[idx]={...state.gearItems[idx], name:document.getElementById('editGearName').value.trim(), category:cat, weight:parseFloat(document.getElementById('editGearWeight').value), weightUnit:document.getElementById('editWeightUnit').value, price:parseFloat(document.getElementById('editGearPrice').value)||0, owner:document.getElementById('editGearOwner').value, critical:document.getElementById('editGearCritical').checked}; } else if(type==='expense') { const idx=state.expenses.findIndex(e=>e.id===id); if(idx===-1) return; let cat=document.getElementById('editExpCat').value; if(cat==='__custom__') { cat=document.getElementById('editExpCustom').value.trim(); if(!Validation.checkText(document.getElementById('editExpCustom'), 1, 30)) return; state.expenseCategories.add(cat); updateCategorySelects(); } saveToHistory(); state.expenses[idx]={...state.expenses[idx], desc:document.getElementById('editExpDesc').value.trim(), category:cat, amount:parseFloat(document.getElementById('editExpAmount').value)||0, paidBy:document.getElementById('editExpPayer').value}; } modal.style.display='none'; markUnsaved(); refreshAll(); saveToHistory(); }
+function renderTemplatesList() { const cont=getEl('templatesList'); cont.innerHTML=''; state.allTemplates.forEach(t=>{ const div=document.createElement('div'); div.className='template-item'; div.innerHTML='<span>' + escapeHtml(t.name) + '</span><button class="template-edit" data-id="' + t.id + '">✏️</button><button class="template-delete" data-id="' + t.id + '">🗑️</button>'; div.querySelector('span').onclick=()=>loadTemplate(t); div.querySelector('.template-edit').onclick=e=>{ e.stopPropagation(); showInputModal('✏️ Переименовать шаблон', t.name, (newName)=>{ t.name=newName; localStorage.setItem('pochodAllTemplates', JSON.stringify(state.allTemplates)); renderTemplatesList(); showToast('✏️ Шаблон переименован'); }); }; div.querySelector('.template-delete').onclick=e=>{ e.stopPropagation(); showConfirmDeleteDialog('Удалить шаблон «' + t.name + '»?', '', ()=>{ state.allTemplates=state.allTemplates.filter(x=>x.id!==t.id); localStorage.setItem('pochodAllTemplates', JSON.stringify(state.allTemplates)); renderTemplatesList(); showToast('📋 Шаблон удалён'); }); }; cont.appendChild(div); }); }
+function loadTemplate(template) { saveToHistory(); const d=template.data; state.participants=[...(d.participants||[])]; state.gearItems=(d.gearItems||[]).map(g=>({...g, id:generateId()})); state.expenses=(d.expenses||[]).map(e=>({...e, id:generateId()})); state.checklistStatus={}; state.gearItems.forEach(g=>{ state.checklistStatus[g.id]=false; }); markUnsaved(); refreshAll(); saveToHistory(); showToast('📋 «' + template.name + '» загружен'); }
+function addTemplate(name, data) { const t={id:generateId(), name, data}; state.allTemplates.push(t); localStorage.setItem('pochodAllTemplates', JSON.stringify(state.allTemplates)); renderTemplatesList(); return t; }
+const builtinTemplates = [
+{ id: 1, name: '☀️ Летний поход', data: { participants: ['Анна', 'Дмитрий', 'Елена', 'Сергей'], gearItems: [ {name: 'Палатка 4-местная', category: 'Снаряжение', weight: 3.8, weightUnit: 'kg', price: 12500, owner: 'Анна', critical: true}, {name: 'Спальник летний', category: 'Снаряжение', weight: 0.8, weightUnit: 'kg', price: 2500, owner: 'Дмитрий', critical: false}, {name: 'Горелка', category: 'Кухня', weight: 0.35, weightUnit: 'kg', price: 1200, owner: 'Елена', critical: true}, {name: 'Аптечка', category: 'Аптечка', weight: 0.3, weightUnit: 'kg', price: 1500, owner: 'Сергей', critical: true} ], expenses: [ {desc: 'Продукты', category: 'Еда', amount: 5000, paidBy: 'Анна'}, {desc: 'Бензин', category: 'Транспорт', amount: 3000, paidBy: 'Дмитрий'} ] } },
+{ id: 2, name: '❄️ Зимний поход', data: { participants: ['Михаил', 'Ольга', 'Игорь'], gearItems: [ {name: 'Зимняя палатка', category: 'Снаряжение', weight: 4.5, weightUnit: 'kg', price: 15000, owner: 'Михаил', critical: true}, {name: 'Спальник зимний', category: 'Снаряжение', weight: 1.8, weightUnit: 'kg', price: 5000, owner: 'Ольга', critical: true}, {name: 'Печка', category: 'Кухня', weight: 2, weightUnit: 'kg', price: 3000, owner: 'Игорь', critical: true} ], expenses: [ {desc: 'Продукты', category: 'Еда', amount: 8000, paidBy: 'Михаил'}, {desc: 'Дрова', category: 'Прочее', amount: 2000, paidBy: 'Ольга'} ] } },
+{ id: 3, name: '🚣 Водный поход', data: { participants: ['Алексей', 'Мария', 'Павел'], gearItems: [ {name: 'Байдарка 2-местная', category: 'Снаряжение', weight: 22, weightUnit: 'kg', price: 35000, owner: 'Алексей', critical: true}, {name: 'Спасжилет', category: 'Снаряжение', weight: 1.2, weightUnit: 'kg', price: 3500, owner: 'Мария', critical: true}, {name: 'Гермомешок 60л', category: 'Снаряжение', weight: 0.5, weightUnit: 'kg', price: 2800, owner: 'Павел', critical: true}, {name: 'Каска', category: 'Снаряжение', weight: 0.4, weightUnit: 'kg', price: 1800, owner: 'Алексей', critical: true}, {name: 'Аптечка водная', category: 'Аптечка', weight: 0.5, weightUnit: 'kg', price: 2000, owner: 'Мария', critical: true} ], expenses: [ {desc: 'Аренда байдарок', category: 'Снаряжение', amount: 9000, paidBy: 'Алексей'}, {desc: 'Продукты', category: 'Еда', amount: 4000, paidBy: 'Мария'} ] } },
+{ id: 4, name: '⛰️ Горный поход', data: { participants: ['Иван', 'Катерина', 'Олег', 'Наташа'], gearItems: [ {name: 'Каска альпинистская', category: 'Снаряжение', weight: 0.3, weightUnit: 'kg', price: 4500, owner: 'Иван', critical: true}, {name: 'Страховочная система', category: 'Снаряжение', weight: 0.6, weightUnit: 'kg', price: 8000, owner: 'Иван', critical: true}, {name: 'Карабины (5 шт)', category: 'Снаряжение', weight: 0.4, weightUnit: 'kg', price: 3500, owner: 'Катерина', critical: true}, {name: 'Ледоруб', category: 'Инструменты', weight: 0.7, weightUnit: 'kg', price: 6000, owner: 'Олег', critical: false}, {name: 'Кошки', category: 'Снаряжение', weight: 1.1, weightUnit: 'kg', price: 7500, owner: 'Наташа', critical: true}, {name: 'Аптечка горная', category: 'Аптечка', weight: 0.6, weightUnit: 'kg', price: 2500, owner: 'Катерина', critical: true}, {name: 'Горелка туристическая', category: 'Кухня', weight: 0.3, weightUnit: 'kg', price: 2200, owner: 'Наташа', critical: true} ], expenses: [ {desc: 'Продукты высококалорийные', category: 'Еда', amount: 7000, paidBy: 'Иван'}, {desc: 'Газ для горелки', category: 'Прочее', amount: 1500, paidBy: 'Олег'} ] } }
+];
+function setDemoData() {
+console.log('🔧 ЗАГРУЗКА ДЕМО-ДАННЫХ...');
+state.participants=['Анна', 'Дмитрий', 'Елена'];
+state.gearItems=[
+{id:generateId(), name:'Палатка 4-местная', category:'Снаряжение', weight:3.8, weightUnit:'kg', price:12500, owner:'Анна', critical:true},
+{id:generateId(), name:'Горелка', category:'Кухня', weight:650, weightUnit:'g', price:2400, owner:'Дмитрий', critical:true},
+{id:generateId(), name:'Котёл 5л', category:'Кухня', weight:0.9, weightUnit:'kg', price:1900, owner:'Елена', critical:false},
+{id:generateId(), name:'Аптечка', category:'Аптечка', weight:0.45, weightUnit:'kg', price:1750, owner:'Анна', critical:true}
+];
+state.expenses=[
+{id:generateId(), desc:'Продукты', category:'Еда', amount:3450, paidBy:'Дмитрий'},
+{id:generateId(), desc:'Бензин', category:'Транспорт', amount:2100, paidBy:'Анна'}
+];
+state.gearItems.forEach(g=>state.checklistStatus[g.id]=false);
+state.routePoints=[
+{id:generateId(), name:'Старт', lat:55.751244, lng:37.618423, type:'camp'},
+{id:generateId(), name:'Родник', lat:55.761244, lng:37.628423, type:'water'},
+{id:generateId(), name:'Магазин', lat:55.771244, lng:37.608423, type:'shop'},
+{id:generateId(), name:'Смотровая', lat:55.781244, lng:37.638423, type:'sight'}
+];
+console.log('✅ Демо-данные загружены:', { participants: state.participants.length, gearItems: state.gearItems.length, expenses: state.expenses.length, routePoints: state.routePoints.length });
+AppLogger.add('DEMO', 'Демо-данные установлены');
+}
+function loadFromStorage() {
+console.log('🔄 Загрузка данных из localStorage...');
+const saved = localStorage.getItem('pochodPlanner');
+let hasValidData = false;
+if (saved && saved.trim() !== '{}' && saved.trim() !== '[]' && saved.trim() !== '') {
+try {
+const data = JSON.parse(saved);
+if ((data.gearItems && data.gearItems.length > 0) || (data.expenses && data.expenses.length > 0) || (data.participants && data.participants.length > 0)) {
+hasValidData = true;
+console.log('✅ Найдены валидные данные в localStorage');
+const migrated = migrateCategories(data);
+state.participants = migrated.participants || [];
+state.gearItems = migrated.gearItems || [];
+state.expenses = migrated.expenses || [];
+state.checklistStatus = migrated.checklistStatus || {};
+state.includeGearInDebts = migrated.includeGearInDebts || false;
+state.gearCategories = new Set(migrated.gearCategories || DEFAULT_GEAR_CATEGORIES);
+state.expenseCategories = new Set(migrated.expenseCategories || DEFAULT_EXPENSE_CATEGORIES);
+if (migrated.globalIdCounter) globalIdCounter = migrated.globalIdCounter;
+syncGlobalIdCounter();
+const gearEl = getEl('includeGearInDebtsToggle');
+if(gearEl) gearEl.checked = state.includeGearInDebts;
+updateCategorySelects();
+clearUnsaved();
+AppLogger.add('LOAD', 'Данные загружены из localStorage');
+}
+} catch(e) { console.warn('❌ Ошибка парсинга JSON:', e); }
+}
+if (!hasValidData) { console.log('⚠️ Данные не найдены или пусты, загружаем демо...'); setDemoData(); refreshAll(); saveToHistory(); return true; }
+return false;
+}
+function enableReadOnlyMode() { document.body.classList.add('view-mode'); showToast('👁️ Режим просмотра. Редактирование запрещено.'); }
+function toUrlSafeBase64(str) { return btoa(encodeURIComponent(str)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function fromUrlSafeBase64(str) { const padding='='.repeat((4-str.length%4)%4); return decodeURIComponent(atob(str.replace(/-/g, '+').replace(/_/g, '/')+padding)); }
+async function compressAndEncode(obj) {
+try {
+const json = JSON.stringify(obj);
+const blob = new Blob([json], {type: 'application/json'});
+const stream = blob.stream().pipeThrough(new CompressionStream('gzip'));
+const compressedBlob = await new Response(stream).blob();
+const buffer = await compressedBlob.arrayBuffer();
+const uint8Array = new Uint8Array(buffer);
+let binary = '';
+for (let i = 0; i < uint8Array.length; i++) binary += String.fromCharCode(uint8Array[i]);
+return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+} catch(e) {
+console.warn('CompressionStream not supported, falling back to raw base64', e);
+return toUrlSafeBase64(JSON.stringify(obj));
+}
+}
+async function decompressAndDecode(str) {
+try {
+const binary = atob(str.replace(/-/g, '+').replace(/_/g, '/'));
+const bytes = new Uint8Array(binary.length);
+for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+const blob = new Blob([bytes], {type: 'application/gzip'});
+const stream = blob.stream().pipeThrough(new DecompressionStream('gzip'));
+return await new Response(stream).text();
+} catch(e) {
+console.warn('DecompressionStream not supported, falling back to raw decode', e);
+return fromUrlSafeBase64(str);
+}
+}
+function loadFromShare() {
+const hash = window.location.hash.slice(1);
+if(!hash) return;
+const params = new URLSearchParams(hash);
+const share = params.get('share');
+const mode = params.get('mode');
+if(!share) return;
+(async () => {
+try {
+const json = await decompressAndDecode(share);
+let data = JSON.parse(json);
+data = migrateCategories(data);
+if(data.participants) state.participants=data.participants;
+if(data.gearItems) {
+const newStatus={};
+state.gearItems=(data.gearItems||[]).map(g=>{
+const newId=generateId();
+const orig=data.gearItems.find(og=>og.name===g.name&&og.category===g.category&&og.owner===g.owner);
+newStatus[newId]=orig&&data.checklistStatus?data.checklistStatus[orig.id]:false;
+return {...g, id:newId};
+});
+state.checklistStatus=newStatus;
+} else { state.gearItems=[]; }
+state.expenses=(data.expenses||[]).map(e=>({...e, id:generateId()}));
+if(!data.gearItems&&data.checklistStatus) state.checklistStatus=data.checklistStatus||{};
+if(data.includeGearInDebts!==undefined) state.includeGearInDebts=data.includeGearInDebts;
+if(data.gearCategories) state.gearCategories=new Set(data.gearCategories);
+if(data.expenseCategories) state.expenseCategories=new Set(data.expenseCategories);
+if(data.routePoints) state.routePoints=data.routePoints.map(p=>({...p, id:generateId()}));
+refreshAll();
+if(mode==='view') enableReadOnlyMode(); else showToast('📥 Данные из ссылки загружены');
+window.history.replaceState({}, document.title, window.location.pathname);
+} catch(e) { showToast('❌ Ошибка чтения ссылки'); }
+})();
+}
+function initCollapsibles() { const setup=(headerId, contentId, btnId)=>{ const header=getEl(headerId), content=getEl(contentId), btn=getEl(btnId); let collapsed=false; const toggle=()=>{ collapsed=!collapsed; if(collapsed) { content.classList.add('collapsed'); btn.classList.add('collapsed'); btn.innerHTML='▶'; header.classList.add('collapsed'); content.style.maxHeight='0'; } else { content.classList.remove('collapsed'); btn.classList.remove('collapsed'); btn.innerHTML='▼'; header.classList.remove('collapsed'); if(contentId==='mapContent') { content.style.maxHeight='5000px'; setTimeout(()=>{ if(mapState.map) mapState.map.invalidateSize(); }, 350); } else { content.style.maxHeight=content.scrollHeight+'px'; } } }; btn.onclick=e=>{ e.stopPropagation(); toggle(); }; header.onclick=e=>{ if(e.target!==btn) toggle(); }; if(contentId==='mapContent') content.style.maxHeight='5000px'; else content.style.maxHeight=content.scrollHeight+'px'; }; setup('gearFiltersHeader','gearFiltersContent','toggleGearFilters'); setup('expenseFiltersHeader','expenseFiltersContent','toggleExpenseFilters'); setup('weightChartHeader','weightChartContent','toggleWeightChart'); setup('expenseChartHeader','expenseChartContent','toggleExpenseChart'); setup('checklistHeader','checklistContent','toggleChecklist'); setup('templatesHeader','templatesContent','toggleTemplates'); setup('mapHeader','mapContent','toggleMap'); }
+window.toggleExpCheckboxes = function(type) {
+const expAll = document.getElementById('expAll');
+const expGear = document.getElementById('expGear');
+const expExpenses = document.getElementById('expExpenses');
+if (type === 'all') { const checked = expAll.checked; expGear.checked = checked; expExpenses.checked = checked; } else { expAll.checked = expGear.checked && expExpenses.checked; }
+};
+function bindUI() {
+getEl('helpBtn').onclick = () => getEl('helpModal').classList.add('show');
+getEl('helpClose').onclick = () => getEl('helpModal').classList.remove('show');
+getEl('helpModal').addEventListener('click', e => { if(e.target === getEl('helpModal')) getEl('helpModal').classList.remove('show'); });
+function applyVisibility() {
+const sectionMap={ toggleMapSection:'mapBlock', toggleChecklistSection:'checklistBlock', toggleTemplatesSection:'templatesBlock', toggleShareSection:'shareBlock', toggleParticipantsSection:'participantsBlock', toggleGearCard:'gearBlock', toggleExpenseCard:'expenseBlock', toggleChartsCard:'chartsBlock' };
+for(const [checkboxId, blockId] of Object.entries(sectionMap)) { const checkbox=getEl(checkboxId), block=getEl(blockId); if(checkbox&&block) { if(checkbox.checked) block.classList.remove('section-hide'); else block.classList.add('section-hide'); } }
+if(mapState.map&&!getEl('mapBlock').classList.contains('section-hide')) setTimeout(()=>mapState.map.invalidateSize(), 100);
+if(!getEl('chartsBlock').classList.contains('section-hide')) updateCharts();
+const visibilityState={};
+for(const checkboxId of Object.keys(sectionMap)) visibilityState[checkboxId]=getEl(checkboxId).checked;
+localStorage.setItem('pochodVisibility', JSON.stringify(visibilityState));
+}
+function closeAllDropdowns() { const dropdowns = document.querySelectorAll('.dropdown-menu'); dropdowns.forEach(dropdown => { dropdown.classList.remove('show'); }); }
+const screenFiltersBtn = getEl('screenFiltersBtn');
+const screenFiltersDropdown = getEl('screenFiltersDropdown');
+if(screenFiltersBtn) {
+screenFiltersBtn.onclick = (e) => { e.stopPropagation(); closeAllDropdowns(); screenFiltersDropdown.classList.toggle('show'); };
+document.addEventListener('click', (e) => { if(!screenFiltersDropdown.contains(e.target) && e.target !== screenFiltersBtn) { screenFiltersDropdown.classList.remove('show'); } });
+const ids = ['MapSection', 'ChecklistSection', 'TemplatesSection', 'ShareSection', 'ParticipantsSection', 'GearCard', 'ExpenseCard', 'ChartsCard'];
+ids.forEach(id => { const cb = getEl('toggle' + id); if(cb) cb.onchange = applyVisibility; });
+}
+const menuBtn = getEl('menuButton');
+const dropdownMenu = getEl('dropdownMenu');
+if(menuBtn) {
+menuBtn.onclick = (e) => { e.stopPropagation(); closeAllDropdowns(); dropdownMenu.classList.toggle('show'); };
+document.addEventListener('click', (e) => { if(!dropdownMenu.contains(e.target) && e.target !== menuBtn) { dropdownMenu.classList.remove('show'); } });
+}
+getEl('addParticipantBtn').onclick=()=>{ const n=getEl('newParticipantName').value.trim(); if(!Validation.checkText(getEl('newParticipantName'), 1, 30)) return; if(Validation.isDuplicate(n, state.participants)) { Validation.setError(getEl('newParticipantName'), 'Уже добавлен'); return; } Validation.clearError(getEl('newParticipantName')); if(state.participants.length>=25) { showErrorModal('⚠️ Лимит', 'Максимум 25 участников', null, 'OK'); return; } saveToHistory(); state.participants.push(n); getEl('newParticipantName').value=''; markUnsaved(); refreshAll(); saveToHistory(); };
+getEl('addGearBtn').onclick=()=>{ const nameEl=getEl('gearName'), weightEl=getEl('gearWeight'), priceEl=getEl('gearPrice'), ownerEl=getEl('gearOwner'); if(!Validation.checkText(nameEl, 1, 50)) return; const weight=parseNumberSafe(weightEl.value, 0); const price=parseNumberSafe(priceEl.value, 0); if(weight===null||price===null) { showErrorModal('⚠️ Ошибка', 'Некорректное числовое значение', null, 'OK'); return; } if(!ownerEl.value) { showErrorModal('⚠️ Ошибка', 'Выберите владельца предмета', null, 'OK'); return; } let cat=getEl('gearCategory').value; if(cat==='__custom__') { cat=getEl('gearCustomCategory').value.trim(); if(!Validation.checkText(getEl('gearCustomCategory'), 1, 30)) return; state.gearCategories.add(cat); updateCategorySelects(); } saveToHistory(); state.gearItems.push({id:generateId(), name:nameEl.value.trim(), category:cat, weight:weight, weightUnit:getEl('weightUnit').value, price:price, owner:ownerEl.value, critical:getEl('gearCritical').checked}); nameEl.value=''; weightEl.value=''; priceEl.value=''; getEl('gearCritical').checked=false; markUnsaved(); refreshAll(); debouncedRecalcChecklist(); saveToHistory(); };
+getEl('addExpenseBtn').onclick=()=>{ const descEl=getEl('expenseName'), amtEl=getEl('expenseAmount'), payerEl=getEl('expensePaidBy'); if(!Validation.checkText(descEl, 1, 50)) return; const amount=parseNumberSafe(amtEl.value, 0); if(amount===null) { showErrorModal('⚠️ Ошибка', 'Некорректная сумма', null, 'OK'); return; } if(!payerEl.value) { showErrorModal('⚠️ Ошибка', 'Выберите, кто оплатил', null, 'OK'); return; } let cat=getEl('expenseCategory').value; if(cat==='__custom__') { cat=getEl('expenseCustomCategory').value.trim(); if(!Validation.checkText(getEl('expenseCustomCategory'), 1, 30)) return; state.expenseCategories.add(cat); updateCategorySelects(); } saveToHistory(); state.expenses.push({id:generateId(), desc:descEl.value.trim(), category:cat, amount:amount, paidBy:payerEl.value}); descEl.value=''; amtEl.value=''; markUnsaved(); refreshAll(); saveToHistory(); };
+getEl('addPointBtn').onclick=()=>{ const nameEl=getEl('pointName'), latEl=getEl('pointLat'), lngEl=getEl('pointLng'); let type=getEl('pointType').value; if(!Validation.checkText(nameEl, 1, 50)) return; if(!Validation.checkCoords(latEl, lngEl)) return; if(type==='__custom__') { type=getEl('pointCustomType').value.trim(); if(!Validation.checkText(getEl('pointCustomType'), 1, 30)) return; } addPoint(nameEl.value.trim(), parseFloat(latEl.value), parseFloat(lngEl.value), type); nameEl.value=''; latEl.value=''; lngEl.value=''; getEl('pointType').value='camp'; getEl('pointCustomTypeDiv').style.display='none'; };
+getEl('clearPointsBtn').onclick=()=>{ if(state.routePoints.length) showConfirmDeleteDialog('Очистить все точки?', 'Это действие удалит все точки маршрута без возможности восстановления.', ()=>{ saveToHistory(); state.routePoints=[]; updatePointsList(); updateMapPoints(); markUnsaved(); autoSave(); saveToHistory(); }); };
+getEl('includeGearInDebtsToggle').onchange=e=>{ saveToHistory(); state.includeGearInDebts=e.target.checked; markUnsaved(); renderBalances(); saveToHistory(); };
+getEl('checkAllBtn').onclick=()=>{ saveToHistory(); getFilteredGearItems().forEach(g=>state.checklistStatus[g.id]=true); markUnsaved(); renderChecklist(); saveToHistory(); };
+getEl('uncheckAllBtn').onclick=()=>{ saveToHistory(); getFilteredGearItems().forEach(g=>state.checklistStatus[g.id]=false); markUnsaved(); renderChecklist(); saveToHistory(); };
+getEl('showMissingCriticalBtn').onclick=()=>{ const items=getFilteredGearItems(); const missing=items.filter(g=>g.critical&&!state.checklistStatus[g.id]); const overlay=document.createElement('div'); overlay.className='critical-modal-overlay'; if(missing.length) {
+overlay.innerHTML='<div class="critical-modal-content"><div class="critical-modal-header warning"><span class="critical-modal-icon">🔥</span><h3>Несобранное критичное</h3><button class="critical-modal-close">&times;</button></div><div class="critical-modal-list">' + missing.map(item=>'<div class="critical-modal-item"><span>🔥</span><div><div>' + escapeHtml(item.name) + '</div><div>📁 ' + escapeHtml(item.category) + ' · 👤 ' + escapeHtml(item.owner||'?') + '</div></div></div>').join('') + '</div><div class="critical-modal-footer"><button class="critical-modal-ok">Понятно, исправлю!</button></div></div>';
+} else {
+overlay.innerHTML='<div class="critical-modal-content"><div class="critical-modal-header success"><span class="critical-modal-icon">✅</span><h3>Всё критичное собрано!</h3><button class="critical-modal-close">&times;</button></div><div class="critical-modal-list" style="text-align:center; padding:20px;"><div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div><p style="color: #166534; font-weight: 600;">Все критичные предметы отмечены как собранные</p><p style="color: #6b7280; margin-top: 1rem;">Можно отправляться в поход! 🏕️</p></div><div class="critical-modal-footer"><button class="critical-modal-ok success">Отлично!</button></div></div>';
+} document.body.appendChild(overlay); overlay.querySelector('.critical-modal-ok').onclick=()=>overlay.remove(); overlay.querySelector('.critical-modal-close').onclick=()=>overlay.remove(); overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); }); };
+getEl('exportFullBtn').onclick=()=>exportFullFormat();
+getEl('importDataBtn').onclick=()=>getEl('importFile').click();
+getEl('importFile').onchange=e=>{
+const file=e.target.files[0]; if(!file) return;
+const reader=new FileReader();
+const progressBar = getEl('importProgress');
+const progressFill = getEl('importProgressFill');
+const progressText = getEl('importProgressText');
+reader.onprogress = (event) => { if (event.lengthComputable) { const percent = Math.round((event.loaded / event.total) * 100); progressFill.style.width = percent + '%'; progressText.textContent = `Загрузка ${percent}%`; } };
+reader.onload=ev=>{
+setTimeout(() => {
+progressBar.style.display = 'none';
+try {
+const d=JSON.parse(ev.target.result);
+if(!d||(!d.participants&&!d.gearItems&&!d.expenses)) throw new Error('Неверный формат файла');
+if(d.participants) state.participants=d.participants;
+state.gearItems=(d.gearItems||[]).map(g=>({...g, id:generateId()}));
+state.expenses=(d.expenses||[]).map(e=>({...e, id:generateId()}));
+if(d.checklistStatus) state.checklistStatus=d.checklistStatus;
+if(d.includeGearInDebts!==undefined) state.includeGearInDebts=d.includeGearInDebts;
+if(d.gearCategories) state.gearCategories=new Set(d.gearCategories);
+if(d.expenseCategories) state.expenseCategories=new Set(d.expenseCategories);
+if(d.routePoints) state.routePoints=d.routePoints.map(p=>({...p, id:generateId()}));
+getEl('includeGearInDebtsToggle').checked=state.includeGearInDebts;
+updateCategorySelects();
+markUnsaved();
+refreshAll();
+saveToHistory();
+showToast('📀 Импортировано!');
+} catch(err) { showErrorModal('❌ Ошибка импорта', err.message, null, 'OK'); }
+}, 500);
+};
+reader.readAsText(file);
+progressBar.style.display = 'flex';
+progressFill.style.width = '0%';
+progressText.textContent = 'Загрузка 0%';
+e.target.value='';
+};
+getEl('generateShareBtn').onclick=async ()=>{
+const overlay=document.createElement('div'); overlay.className='confirm-delete-overlay';
+overlay.innerHTML=`<div class="confirm-delete-content"><div class="confirm-delete-icon">🔗</div><div class="confirm-delete-title">Создать ссылку</div><div class="confirm-delete-message">Выберите уровень доступа для получателя:</div><div style="display:flex;gap:10px;justify-content:center;margin-bottom:15px"><button id="shareEditBtn" class="btn-secondary" style="flex:1">✏️ Редактирование</button><button id="shareViewBtn" class="btn-secondary" style="flex:1;background:#3b6e8f">👁️ Только чтение</button></div><div class="confirm-delete-actions"><button class="btn-cancel">Отмена</button></div></div>`;
+document.body.appendChild(overlay); const close=()=>overlay.remove(); overlay.querySelector('.btn-cancel').onclick=close; overlay.addEventListener('click', e=>{ if(e.target===overlay) close(); });
+const createLink=async (mode)=>{
+const data={participants:state.participants, gearItems:state.gearItems, expenses:state.expenses, checklistStatus:state.checklistStatus, includeGearInDebts:state.includeGearInDebts, routePoints:state.routePoints};
+const compressed=await compressAndEncode(data);
+const url=`${window.location.origin}${window.location.pathname}#share=${compressed}&mode=${mode}`;
+getEl('shareLink').value=url;
+showToast(mode==='view'?'👁️ Ссылка для просмотра создана':'✏️ Ссылка для редактирования создана');
+close();
+};
+overlay.querySelector('#shareEditBtn').onclick=()=>createLink('edit');
+overlay.querySelector('#shareViewBtn').onclick=()=>createLink('view');
+};
+getEl('copyShareBtn').onclick=async()=>{ try { await navigator.clipboard.writeText(getEl('shareLink').value); showToast('📋 Скопировано'); } catch(e) { getEl('shareLink').select(); document.execCommand('copy'); showToast('📋 Скопировано'); } };
+getEl('themeToggleBtn').onclick=()=>{ document.body.classList.toggle('dark-theme'); const dark=document.body.classList.contains('dark-theme'); localStorage.setItem('pochodTheme', dark?'dark':'light'); getEl('themeToggleBtn').innerHTML=dark?'☀️ Светлая':'🌙 Тёмная'; };
+getEl('downloadLogBtn').onclick=()=>AppLogger.download();
+getEl('saveEditBtn').onclick=saveEdit; getEl('cancelEditBtn').onclick=()=>getEl('editModal').style.display='none'; window.onclick=e=>{ if(e.target===getEl('editModal')) getEl('editModal').style.display='none'; };
+getEl('addNewTemplateBtn').onclick=()=>{ showInputModal('📋 Новый шаблон', 'Мой шаблон', (name)=>{ addTemplate(name, {participants:[], gearItems:[], expenses:[]}); showToast('✅ Шаблон создан'); }); };
+getEl('saveCurrentTemplateBtn').onclick=()=>{ showInputModal('💾 Сохранить как шаблон', 'Мой поход', (name)=>{ addTemplate(name, {participants:[...state.participants], gearItems:state.gearItems.map(({id,...r})=>r), expenses:state.expenses.map(({id,...r})=>r)}); showToast('✅ Шаблон сохранён'); }); };
+getEl('loadTemplateFileBtn').onclick=()=>getEl('templateFileInput').click();
+getEl('duplicateTripBtn').onclick=()=>{ showInputModal('🔄 Дублировать поход', 'Копия похода', (name)=>{ const t=addTemplate(name, {participants:[...state.participants], gearItems:state.gearItems.map(({id,...r})=>r), expenses:state.expenses.map(({id,...r})=>r)}); loadTemplate(t); showToast('✅ Поход дублирован'); }); };
+getEl('templateFileInput').onchange=e=>{ if(e.target.files[0]) { const reader=new FileReader(); reader.onload=ev=>{ try { const d=JSON.parse(ev.target.result); addTemplate(d.name||'Импорт', {participants:d.participants||[], gearItems:d.gearItems||[], expenses:d.expenses||[]}); } catch(err) { showErrorModal('❌ Ошибка', 'Неверный формат файла', null, 'OK'); } }; reader.readAsText(e.target.files[0]); e.target.value=''; } };
+document.addEventListener('keydown', e=>{ if(e.ctrlKey&&e.key==='z') { e.preventDefault(); undo(); } });
+const debouncedRefreshGear=debounce(()=>{ renderGearList(); renderChecklist(); updateFilterBadges(); }, 300);
+const debouncedRefreshExp=debounce(()=>{ renderExpenseList(); renderBalances(); updateFilterBadges(); }, 300);
+getEl('gearSearch').oninput=debouncedRefreshGear; getEl('gearCategoryFilter').onchange=debouncedRefreshGear; getEl('gearOwnerFilter').onchange=debouncedRefreshGear; getEl('gearWeightFilter').onchange=debouncedRefreshGear;
+getEl('expenseSearch').oninput=debouncedRefreshExp; getEl('expenseCategoryFilter').onchange=debouncedRefreshExp; getEl('expensePayerFilter').onchange=debouncedRefreshExp; getEl('expenseAmountFilter').onchange=debouncedRefreshExp;
+getEl('pointType').onchange=()=>{ getEl('pointCustomTypeDiv').style.display = getEl('pointType').value === '__custom__' ? 'block' : 'none'; };
+getEl('gearCategory').onchange=()=>{ getEl('gearCustomCategoryDiv').style.display = getEl('gearCategory').value === '__custom__' ? 'block' : 'none'; };
+getEl('expenseCategory').onchange=()=>{ getEl('expenseCustomCategoryDiv').style.display = getEl('expenseCategory').value === '__custom__' ? 'block' : 'none'; };
+}
+function exportFullFormat() {
+const format = document.getElementById('fullExportFormat').value;
+const expAll = document.getElementById('expAll').checked;
+const expGear = document.getElementById('expGear').checked;
+const expExpenses = document.getElementById('expExpenses').checked;
+if (!expGear && !expExpenses) { showToast('⚠️ Выберите хотя бы один тип данных для экспорта'); return; }
+let content = '', filename = '', mime = 'text/plain';
+const data = { participants: state.participants, gearItems: expGear ? state.gearItems : [], expenses: expExpenses ? state.expenses : [], checklistStatus: expGear ? state.checklistStatus : {}, includeGearInDebts: state.includeGearInDebts, routePoints: [] };
+if (format === 'json') { content = JSON.stringify(data, null, 2); filename = 'hiking-plan-export.json'; mime = 'application/json'; }
+else if (format === 'txt') {
+content = '=== ПОХОДНЫЙ ПЛАН (ЭКСПОРТ) ===\nУчастники: ' + state.participants.join(', ') + '\n';
+if (expGear) { content += '🎒 СНАРЯЖЕНИЕ:\n' + state.gearItems.map(g => `- ${g.name} | ${g.category} | ${g.weight}${g.weightUnit} | ${g.owner} | ${g.price||0}₽${g.critical ? ' 🔥' : ''}`).join('\n') + '\n'; }
+if (expExpenses) { content += '💰 ТРАТЫ:\n' + state.expenses.map(e => `- ${e.desc} | ${e.category} | ${e.amount}₽ | ${e.paidBy}`).join('\n'); }
+filename = 'hiking-plan-export.txt';
+}
+else if (format === 'csv') {
+content = 'Тип,Название/Описание,Категория,Значение,Дополнительно\n';
+state.participants.forEach(p => content += 'participant,' + p + ',,,\n');
+if (expGear) { state.gearItems.forEach(g => content += 'gear,' + g.name + ',' + g.category + ',' + g.weight + g.weightUnit + ',' + g.owner + '|' + (g.price||0) + '|' + (g.critical?'critical':'') + '\n'); }
+if (expExpenses) { state.expenses.forEach(e => content += 'expense,' + e.desc + ',' + e.category + ',' + e.amount + ',' + e.paidBy + '\n'); }
+filename = 'hiking-plan-export.csv'; mime = 'text/csv';
+}
+downloadFile(content, filename, mime);
+}
+function saveToHistory() { const snapshot={participants:[...state.participants], gearItems:state.gearItems.map(g=>({...g})), expenses:state.expenses.map(e=>({...e})), checklistStatus:{...state.checklistStatus}, includeGearInDebts:state.includeGearInDebts, gearCategories:Array.from(state.gearCategories), expenseCategories:Array.from(state.expenseCategories), routePoints:state.routePoints.map(p=>({...p})), globalIdCounter:globalIdCounter}; if(state.historyIndex<state.history.length-1) state.history=state.history.slice(0, state.historyIndex+1); state.history.push(snapshot); if(state.history.length>state.MAX_HISTORY) state.history.shift(); state.historyIndex=state.history.length-1; }
+function undo() { if(state.historyIndex>0) { state.historyIndex--; const snap=state.history[state.historyIndex]; state.participants=snap.participants; state.gearItems=snap.gearItems; state.expenses=snap.expenses; state.checklistStatus=snap.checklistStatus; state.includeGearInDebts=snap.includeGearInDebts; state.gearCategories=new Set(snap.gearCategories); state.expenseCategories=new Set(snap.expenseCategories); state.routePoints=snap.routePoints; if(snap.globalIdCounter) globalIdCounter=snap.globalIdCounter; getEl('includeGearInDebtsToggle').checked=state.includeGearInDebts; mapState.selectedPointId=null; refreshAll(); showToast('↩️ Отменено'); AppLogger.add('ACTION', 'Undo'); } else showToast('Нечего отменять'); }
+function autoSave() { if(autoSaveTimer) clearTimeout(autoSaveTimer); autoSaveTimer=setTimeout(()=>{ try { localStorage.setItem('pochodPlanner', JSON.stringify({participants:state.participants, gearItems:state.gearItems, expenses:state.expenses, checklistStatus:state.checklistStatus, includeGearInDebts:state.includeGearInDebts, gearCategories:Array.from(state.gearCategories), expenseCategories:Array.from(state.expenseCategories), routePoints:state.routePoints, globalIdCounter:globalIdCounter})); localStorage.setItem('pochodRoutePoints', JSON.stringify(state.routePoints)); clearUnsaved(); } catch(e) { console.warn('Ошибка сохранения', e); } AppLogger.add('AUTO', 'Данные сохранены'); }, AUTO_SAVE_DELAY); }
+function getFilteredGearItems(){ const search=getEl('gearSearch').value.toLowerCase(); const cat=getEl('gearCategoryFilter').value; const owner=getEl('gearOwnerFilter').value; const weightType=getEl('gearWeightFilter').value; return state.gearItems.filter(g=>{ if(cat!=='all'&&g.category!==cat) return false; if(owner!=='all'&&g.owner!==owner) return false; if(search&&!g.name.toLowerCase().includes(search)&&!g.category.toLowerCase().includes(search)&&!(g.owner||'').toLowerCase().includes(search)) return false; const kg=g.weightUnit==='kg'?g.weight:g.weight/1000; if(weightType==='light'&&kg>=0.5) return false; if(weightType==='medium'&&(kg<0.5||kg>2)) return false; if(weightType==='heavy'&&kg<=2) return false; return true; }); }
+function getFilteredExpenseItems(){ const search=getEl('expenseSearch').value.toLowerCase(); const cat=getEl('expenseCategoryFilter').value; const payer=getEl('expensePayerFilter').value; const amtType=getEl('expenseAmountFilter').value; return state.expenses.filter(e=>{ if(cat!=='all'&&e.category!==cat) return false; if(payer!=='all'&&e.paidBy!==payer) return false; if(search&&!e.desc.toLowerCase().includes(search)&&!e.category.toLowerCase().includes(search)&&!(e.paidBy||'').toLowerCase().includes(search)) return false; if(amtType==='small'&&e.amount>=1000) return false; if(amtType==='medium'&&(e.amount<1000||e.amount>5000)) return false; if(amtType==='large'&&e.amount<=5000) return false; return true; }); }
+function renderParticipants() { const cont=getEl('participantsList'); cont.innerHTML=state.participants.length?'':'<div style="color:#6b7280;">Нет участников</div>'; state.participants.forEach(p=>{ const badge=document.createElement('div'); badge.className='participant-badge'; badge.dataset.name=p; badge.innerHTML=`<span>👤 ${escapeHtml(p)}</span><button class="edit-participant" data-name="${escapeHtml(p)}">✏️</button><button class="remove-participant" data-name="${escapeHtml(p)}">🗑️</button>`; cont.appendChild(badge); }); }
+function renderSelects() { const opts='<option value="">-- Кто несёт? --</option>'+state.participants.map(p=>`<option>${escapeHtml(p)}</option>`).join(''); getEl('gearOwner').innerHTML=opts; getEl('expensePaidBy').innerHTML=opts; const fOpts='<option value="all">Все</option>'+state.participants.map(p=>`<option>${escapeHtml(p)}</option>`).join(''); getEl('gearOwnerFilter').innerHTML=fOpts; getEl('expensePayerFilter').innerHTML=fOpts; updateCategorySelects(); }
+function updateCategorySelects() { const gearCatSelect=getEl('gearCategory'); const currentGearVal=gearCatSelect.value; gearCatSelect.innerHTML=DEFAULT_GEAR_CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')+'<option value="__custom__">✨ Свой вариант...</option>'; if(DEFAULT_GEAR_CATEGORIES.includes(currentGearVal)) gearCatSelect.value=currentGearVal; const expCatSelect=getEl('expenseCategory'); const currentExpVal=expCatSelect.value; expCatSelect.innerHTML=DEFAULT_EXPENSE_CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')+'<option value="__custom__">✨ Свой вариант...</option>'; if(DEFAULT_EXPENSE_CATEGORIES.includes(currentExpVal)) expCatSelect.value=currentExpVal; getEl('gearCategoryFilter').innerHTML='<option value="all">Все</option>'+DEFAULT_GEAR_CATEGORIES.map(c=>`<option>${escapeHtml(c)}</option>`).join(''); getEl('expenseCategoryFilter').innerHTML='<option value="all">Все</option>'+DEFAULT_EXPENSE_CATEGORIES.map(c=>`<option>${escapeHtml(c)}</option>`).join(''); }
+function renderGearList() { const items=getFilteredGearItems(); const cont=getEl('gearList'); cont.innerHTML=items.length?'':'<div style="color:#6b7280; text-align:center;">Нет снаряжения</div>'; items.forEach(g=>{ const div=document.createElement('div'); div.className='item-entry'; div.dataset.id=g.id; div.innerHTML=`<div class="item-details"><strong>${escapeHtml(g.name)}</strong><span>📁 ${escapeHtml(g.category)}</span><span>⚖️ ${g.weight}${g.weightUnit}</span>${g.price?`<span>💰 ${g.price} ₽</span>`:''}<span>👤 ${escapeHtml(g.owner||'?')}</span>${g.critical?'<span class="critical-badge">🔥 Критично</span>':''}</div><div class="item-actions"><button class="edit-btn" data-id="${g.id}">✏️</button><button class="delete-btn" data-id="${g.id}">🗑️</button></div>`; cont.appendChild(div); }); }
+function renderExpenseList() { const items=getFilteredExpenseItems(); const cont=getEl('expenseList'); cont.innerHTML=items.length?'':'<div style="color:#6b7280; text-align:center;">Нет расходов</div>'; items.forEach(e=>{ const div=document.createElement('div'); div.className='item-entry'; div.dataset.id=e.id; div.innerHTML=`<div class="item-details"><span>🧾 ${escapeHtml(e.desc)}</span><span>📁 ${escapeHtml(e.category)}</span><span>💰 ${e.amount} ₽</span><span>👤 ${escapeHtml(e.paidBy)}</span></div><div class="item-actions"><button class="edit-expense-btn" data-id="${e.id}">✏️</button><button class="delete-expense-btn" data-id="${e.id}">🗑️</button></div>`; cont.appendChild(div); }); }
+function refreshAll() {
+console.log('🔄 refreshAll() вызван');
+renderParticipants(); renderSelects(); renderGearList(); renderExpenseList();
+renderChecklist(); updateTotals(); renderBalances(); updateCategoryFilters();
+updateFilterBadges(); updateCharts(); if(mapState.map) updateMapPoints();
+updatePointsList(); autoSave();
+}
+let checklistResizeObserver = null;
+function initChecklistResizeObserver() { if(checklistResizeObserver) checklistResizeObserver.disconnect(); const content=getEl('checklistContent'); if(!content) return; checklistResizeObserver=new ResizeObserver(()=>{ if(!content.classList.contains('collapsed')) { content.style.maxHeight=content.scrollHeight+'px'; } }); checklistResizeObserver.observe(content); }
+function updatePwaStatus() {
+const el = document.getElementById('pwaStatus');
+if (!el) return;
+if (navigator.onLine) {
+el.className = 'pwa-status online';
+el.textContent = '🟢 Онлайн';
+} else {
+el.className = 'pwa-status offline';
+el.textContent = '🔴 Офлайн';
+}
+}
+console.log('🚀 ЗАПУСК ПРИЛОЖЕНИЯ v1.00.03');
+setupDelegation();
+const demoLoaded = loadFromStorage();
+try { const savedPoints=localStorage.getItem('pochodRoutePoints'); if(savedPoints && state.routePoints.length === 0) { const parsed = JSON.parse(savedPoints); if(parsed && parsed.length > 0) state.routePoints = parsed; } } catch(e) {}
+try { const savedTemplates=localStorage.getItem('pochodAllTemplates'); if(savedTemplates) { const parsed=JSON.parse(savedTemplates); state.allTemplates=Array.isArray(parsed)&&parsed.length?parsed:builtinTemplates.map(t=>({...t, id:generateId()})); } else { state.allTemplates=builtinTemplates.map(t=>({...t, id:generateId()})); } } catch(e) { state.allTemplates=builtinTemplates.map(t=>({...t, id:generateId()})); }
+renderTemplatesList();
+if(state.gearItems.length===0 && state.expenses.length===0 && state.participants.length===0) {
+console.log('⚠️ Принудительная загрузка демо-данных');
+setDemoData();
+}
+refreshAll();
+initCollapsibles();
+bindUI();
+updatePwaStatus();
+window.addEventListener('online', updatePwaStatus);
+window.addEventListener('offline', updatePwaStatus);
+setTimeout(() => {
+initChecklistResizeObserver();
+initMap();
+updatePointsList();
+updateMapPoints();
+if (demoLoaded || state.gearItems.length > 0) { showToast('✅ v1.00.03 — Приложение готово'); } else { showToast('✅ v1.00.03 — Приложение готово к работе'); }
+AppLogger.add('INIT', 'Приложение запущено v1.00.03');
+}, 100);
+const savedTheme = localStorage.getItem('pochodTheme');
+if (savedTheme === 'dark') {
+document.body.classList.add('dark-theme');
+const themeBtn = getEl('themeToggleBtn');
+if(themeBtn) themeBtn.innerHTML = '☀️ Светлая';
+}
+window.AppFunctions = { escapeHtml: escapeHtml, parseNumberSafe: parseNumberSafe, generateId: generateId, Validation: Validation, migrateCategories: migrateCategories, getChartColors: getChartColors };
+})();
+if ('serviceWorker' in navigator) {
+window.addEventListener('load', () => {
+navigator.serviceWorker.register('./sw.js')
+.then(registration => { console.log('[SW] Service Worker зарегистрирован:', registration.scope); })
+.catch(error => { console.log('[SW] Ошибка регистрации Service Worker:', error); });
+});
+}
+</script>
+</body>
+</html>

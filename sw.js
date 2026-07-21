@@ -1,7 +1,7 @@
-const CACHE_NAME = 'pochod-planner-v1.01.21';
+const CACHE_NAME = 'pochod-planner-v1.02.2';
 const urlsToCache = [
   './',
-  './pochod-planner.html',
+  './index.html',
   './manifest.json',
   // Leaflet CSS & JS
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
@@ -60,7 +60,7 @@ self.addEventListener('fetch', event => {
         return fetch(event.request).catch(() => {
           // Если сеть недоступна и ресурса нет в кэше
           if (event.request.mode === 'navigate') {
-            return caches.match('./pochod-planner.html');
+            return caches.match('./index.html');
           }
         });
       })

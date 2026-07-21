@@ -1,8 +1,8 @@
 {
   "name": "Походный Планировщик PRO",
   "short_name": "ПоходПлан",
-  "description": "Планирование снаряжения, маршрутов, расходов и генерация PDF-отчетов. v1.01.21",
-  "start_url": "./pochod-planner.html",
+  "description": "Планирование снаряжения, маршрутов, расходов и генерация PDF-отчетов. v1.02.2",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#e8f0f5",
   "theme_color": "#2b6e3c",

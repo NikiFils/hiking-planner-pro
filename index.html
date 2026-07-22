@@ -1631,6 +1631,7 @@ window.updateParticipantRole = function(oldName, newRole) { /* переопре�
     let currentUserId = null;
     let unsubscribeTrip = null;
     let isFirstLoad = true;
+    let lastSyncTimestamp = 0;
 
     // ===== ОСТАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
     let chatHistory = [];
@@ -2524,7 +2525,14 @@ window.updateParticipantRole = function(oldName, newRole) { /* переопре�
     var suppressFitMap = false;
     var selectedPointIds = [];
 
-    window.addEventListener('beforeunload', function(e) { if (unsavedChanges && !document.body.classList.contains('view-mode')) { e.preventDefault(); e.returnValue = ''; } });
+    // Исправленный beforeunload
+    window.addEventListener('beforeunload', function(e) {
+        if (unsavedChanges && !document.body.classList.contains('view-mode')) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
     var markUnsaved = function() { unsavedChanges = true; };
     var clearUnsaved = function() { unsavedChanges = false; };
 
@@ -5735,6 +5743,11 @@ window.updateParticipantRole = function(oldName, newRole) { /* переопре�
                 const data = doc.data();
                 if (data) {
                     const localData = getAccountData(getCurrentAccount());
+                    // Игнорируем эхо-обновления
+                    if (localData && data.updatedAt === localData.updatedAt) {
+                        console.log('⏩ Пропускаем эхо-обновление');
+                        return;
+                    }
                     if (!localData || data.updatedAt > localData.updatedAt) {
                         loadStateFromData(data);
                         showToast('☁️ Данные синхронизированы с облака');
